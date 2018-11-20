@@ -103,3 +103,11 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
+
+plot(Final_result[[6]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[6]][,3], col = "red")
+lines(Final_result[[6]][,4], col = "green")
+lines(Final_result[[6]][,5], col = "purple")
+
+plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[1]][,3], col = "red")
