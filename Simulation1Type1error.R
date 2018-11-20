@@ -5,6 +5,11 @@
 #########                                   ##########
 ######################################################
 
+library(psychometric)
+library(doSNOW)
+library(doRNG)
+
+source(file = "some_functions.R")
 ######################################################
 #########  Conditions
 ######################################################
@@ -16,6 +21,7 @@ item_character <- c("parallel", "non-parallel")
 condition <- expand.grid(test_length, item_character)
 colnames(condition) <- c("test_length", "item_character")
 
+Final_result <- list()
 num_test <- 1
 while(num_test <= dim(condition)[1]){
   
@@ -41,8 +47,63 @@ while(num_test <= dim(condition)[1]){
     
   }
   
-  theta <- runif(1000, -3, 3)
+ 
+  theta <- seq(-3, 3, length.out = 1000)
+  
+  cl <- makeCluster(2)
+  registerDoSNOW(cl)
+  sim_result <- foreach(i = 1:100) %dorng% {
+    
+    pretest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))
+    posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change
+  
+    sum_pre <- rowSums(pretest)
+    sum_post <- rowSums(posttest)
   
   
+    r12 <- cor(sum_pre, sum_post)
+    var_pre <- var(sum_pre)
+    sd_pre <- sd(sum_pre)
+    var_post <- var(sum_post)
+    sd_post <- sd(sum_post)
   
+    D_score <- sum_post - sum_pre
+    sd_D <- sd(D_score)
+    rDD <- psychometric::alpha(posttest - pretest)
+    
+    r11 <- psychometric::alpha(pretest)
+    r22 <- psychometric::alpha(posttest)
+    # 0. orginal equation for sigma_E_D_v 
+    SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
+    # 1. alternative equation 1
+    SE1 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
+    # 2. alternative equation 2
+    SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
+    # 3. alternative equation 3
+    SE3 <- sd_D * sqrt(1 - rDD)
+  
+    sig_eq0 <- (abs(D_score / SE0) > 1.645)  #thus, false positive
+    sig_eq1 <- (abs(D_score / SE1) > 1.645)
+    sig_eq2 <- (abs(D_score / SE2) > 1.645)
+    sig_eq3 <- (abs(D_score / SE3) > 1.645)
+    
+    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
+    return(result)
+    
+  }
+  stopCluster(cl)
+  
+  Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
+  result <- cbind(theta, Type1error)
+  colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
+  Final_result[[num_test]] <- result
+  
+  num_test = num_test + 1
 }
+
+plot(Final_result[[6]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[6]][,3], col = "red")
+
+
+plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[1]][,3], col = "red")

@@ -1,5 +1,6 @@
 ######### some functions used in the simulation #############
 
+
 GRM_func <- function(abil, itempar){
   
   numeritor <- exp(sweep((abil - itempar[, -1]), 1, itempar[, 1], "*"))
@@ -9,3 +10,5 @@ GRM_func <- function(abil, itempar){
   
   return(response)
 }
+
+
