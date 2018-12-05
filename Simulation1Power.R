@@ -16,10 +16,11 @@ source(file = "some_functions.R")
 
 test_length <- c(5, 15, 40)
 item_character <- c("parallel", "non-parallel")
+CO_effect <- c("non", "30%", "50%")  # carry-over effects
 change_theta = c(0.5, 1)    
 
-condition <- expand.grid(test_length, item_character, change_theta)
-colnames(condition) <- c("test_length", "item_character", "magnitude_change")
+condition <- expand.grid(test_length, item_character, change_theta,  CO_effect)
+colnames(condition) <- c("test_length", "item_character", "magnitude_change", "carry-over")
 
 
 Final_result <- list()
@@ -58,6 +59,12 @@ while(num_test <= dim(condition)[1]){
     
     pretest <- t(sapply(theta_pre, FUN = GRM_func,  itempar = itempar))
     posttest <- t(sapply(theta_post, FUN = GRM_func,  itempar = itempar))  
+    
+    if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
+      posttest <- carry_over(pretest, posttest, .3)
+    }else if (condition[num_test, 4] == "50%"){
+      posttest <- carry_over(pretest, posttest, .5)
+    }
     
     sum_pre <- rowSums(pretest)
     sum_post <- rowSums(posttest)

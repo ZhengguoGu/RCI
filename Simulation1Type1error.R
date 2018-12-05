@@ -16,10 +16,11 @@ source(file = "some_functions.R")
 
 test_length <- c(5, 15, 40)
 item_character <- c("parallel", "non-parallel")
+CO_effect <- c("non", "30%", "50%")  # carry-over effects
 # change_theta = 0  # this is for calculating type 1 error rate
 
-condition <- expand.grid(test_length, item_character)
-colnames(condition) <- c("test_length", "item_character")
+condition <- expand.grid(test_length, item_character, CO_effect)
+colnames(condition) <- c("test_length", "item_character", "carry-over")
 
 Final_result <- list()
 num_test <- 1
@@ -47,7 +48,7 @@ while(num_test <= dim(condition)[1]){
     
   }
   
- 
+  
   theta <- seq(-3, 3, length.out = 1000)
   
   cl <- makeCluster(2)
@@ -55,8 +56,14 @@ while(num_test <= dim(condition)[1]){
   sim_result <- foreach(i = 1:100) %dorng% {
     
     pretest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))
-    posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change
+    posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change, and if there would be no carry-over effects
   
+    if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
+      posttest <- carry_over(pretest, posttest, .3)
+    }else if (condition[num_test, 3] == "50%"){
+      posttest <- carry_over(pretest, posttest, .5)
+    }
+    
     sum_pre <- rowSums(pretest)
     sum_post <- rowSums(posttest)
   
