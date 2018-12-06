@@ -87,8 +87,14 @@ while(num_test <= dim(condition)[1]){
   
   theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), empirical = FALSE)
   
-  ### stop here!
+  # some of the persons may show carry-over effects
+  if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
+    NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
+  }else if (condition[num_test, 3] == "50%"){
+    NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
+  }
   
+ 
   cl <- makeCluster(2)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {

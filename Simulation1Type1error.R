@@ -53,6 +53,13 @@ while(num_test <= dim(condition)[1]){
   
   
   theta <- rnorm(1000, mean = 0, sd = 1)
+  # some of the persons may show carry-over effects
+  if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
+    NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
+  }else if (condition[num_test, 3] == "50%"){
+    NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
+  }
+  
   
   cl <- makeCluster(2)
   registerDoSNOW(cl)
@@ -61,10 +68,8 @@ while(num_test <= dim(condition)[1]){
     pretest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))
     posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change, and if there would be no carry-over effects
   
-    if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
-      posttest <- carry_over(pretest, posttest, .3)
-    }else if (condition[num_test, 3] == "50%"){
-      posttest <- carry_over(pretest, posttest, .5)
+    if(condition[num_test, 3] != "non"){  
+      posttest <- carry_over(pretest, posttest, NoCarry_index)
     }
     
     sum_pre <- rowSums(pretest)
