@@ -43,13 +43,7 @@ pvalue <- function(z_score, two_tail){
 }
 
 
-# 3. carry-over effect
-
-#--------------------------------------------------------------------------
-# Mimicking carry-over effects
-#
-# Last update: 2018/10/24, percentage of persons showing carry-over effects
-#--------------------------------------------------------------------------
+# 3a carry-over effect
 
 carry_over <- function(pre, post, proc_N){
   
@@ -58,19 +52,15 @@ carry_over <- function(pre, post, proc_N){
   #proc_N: percentage of persons showing carry-over effects (a scalar)
   
   strong_post <- post
-  weak_post <- post  
   
   ind1 <- (pre - post < -1) 
   strong_post[ind1] <- pre[ind1] + 1
-  weak_post[ind1] <- post[ind1] - 1
-  
+ 
   ind2 <- (pre - post > 1)
   strong_post[ind2] <- pre[ind2] - 1
-  weak_post[ind2] <- post[ind2] + 1
   
   ind3 <- (abs(pre-post)==1 )
   strong_post[ind3] <- pre[ind3]
-  weak_post[ind3] <- post[ind3]
   
   
   #taking into account the persentage of persons showing carry-over effects
@@ -79,7 +69,33 @@ carry_over <- function(pre, post, proc_N){
   rand_index <- sample(N, floor(N * (1-proc_N)), replace = FALSE)  #records the index of persons showing NO carry-over effects! see below
   
   strong_post[rand_index] <- post[rand_index]  #those who dont show effects are kept unchanged. 
-  weak_post[rand_index] <- post[rand_index]
   
-  return(list(strong_post, weak_post))
+  
+  return(strong_post)
 }
+
+# 3b carry-over effect for profile change
+
+carry_profile <- function(pre, post, rand_index){
+  
+  #pre: pretest scores (a vector)
+  #post: posttest scores (a vector)
+  #rand_index: the index marking the persons showing no carry-over effects
+  
+  strong_post <- post
+  
+  ind1 <- (pre - post < -1) 
+  strong_post[ind1] <- pre[ind1] + 1
+  
+  ind2 <- (pre - post > 1)
+  strong_post[ind2] <- pre[ind2] - 1
+  
+  ind3 <- (abs(pre-post)==1 )
+  strong_post[ind3] <- pre[ind3]
+  
+  strong_post[rand_index] <- post[rand_index]  #those who dont show effects are kept unchanged. 
+  
+  return(strong_post)
+}
+
+

@@ -10,6 +10,9 @@ library(doSNOW)
 library(doRNG)
 
 source(file = "some_functions.R")
+
+set.seed(1)
+
 ######################################################
 #########  Conditions
 ######################################################
@@ -50,7 +53,7 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  theta_pre <- seq(-3, 3, length.out = 1000)
+  theta_pre <- rnorm(1000, mean = 0, sd = 1)
   theta_post <- theta_pre + condition[num_test, 3] 
     
   cl <- makeCluster(2)
