@@ -119,12 +119,11 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-head(Final_result[[30]])
-newres <- Final_result[[30]][order(Final_result[[30]][, 1]), ]
-plot(newres[,2], ylim = c(0, 1), type = "l")
-lines(newres[,3], col = "red")
-lines(newres[,4], col = "green")
-lines(newres[,5], col = "purple")
+
+plot(Final_result[[30]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[30]][,3], col = "red")
+lines(Final_result[[30]][,4], col = "green")
+lines(Final_result[[30]][,5], col = "purple")
 
 plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
 lines(Final_result[[1]][,3], col = "red")

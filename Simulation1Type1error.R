@@ -117,10 +117,10 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-plot(Final_result[[16]][,5], ylim = c(0, 1), type = "l")
-lines(Final_result[[18]][,3], col = "red")
-lines(Final_result[[18]][,4], col = "green")
-lines(Final_result[[18]][,5], col = "purple")
+plot(Final_result[[14]][,2], ylim = c(0, 1), type = "l")
+lines(Final_result[[14]][,3], col = "red")
+lines(Final_result[[14]][,4], col = "green")
+lines(Final_result[[14]][,5], col = "purple")
 
 plot(Final_result[[18]][,5], col = "green")
 
