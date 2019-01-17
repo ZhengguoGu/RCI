@@ -106,7 +106,7 @@ while(num_test <= dim(condition)[1]){
   }
   
  
-  cl <- makeCluster(2)
+  cl <- makeCluster(4)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -156,12 +156,10 @@ while(num_test <= dim(condition)[1]){
       RCI_3 <- RCI_3 + (D_score/SE3)^2
     }
     
-    
-    
-    sig_eq0 <- (RCI_0 > 5.991 | RCI_0 < 0.103)  #chi-square test at .1 level, two tails
-    sig_eq1 <- (RCI_1 > 5.991 | RCI_1 < 0.103)
-    sig_eq2 <- (RCI_2 > 5.991 | RCI_2 < 0.103)
-    sig_eq3 <- (RCI_3 > 5.991 | RCI_3 < 0.103)
+    sig_eq0 <- (RCI_0 > 4.6052)  #chi-square test at .1 level
+    sig_eq1 <- (RCI_1 > 4.6052)
+    sig_eq2 <- (RCI_2 > 4.6052)
+    sig_eq3 <- (RCI_3 > 4.6052)
     
     result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
     return(result)
@@ -170,9 +168,9 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
-  result <- cbind(theta, Type1error)
-  colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
-  Final_result[[num_test]] <- result
+  colnames(Type1error) <- c( "eq0", "eq1", "eq2", "eq3")
+  Final_result[[num_test]] <- Type1error
   
+  print(num_test)
   num_test = num_test + 1
 }
