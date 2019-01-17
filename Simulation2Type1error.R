@@ -168,8 +168,9 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
-  colnames(Type1error) <- c( "eq0", "eq1", "eq2", "eq3")
-  Final_result[[num_test]] <- Type1error
+  result <- cbind(theta, Type1error)
+  colnames(result) <- c("theta1", "theta2", "theta3", "eq0", "eq1", "eq2", "eq3")
+  Final_result[[num_test]] <- result
   
   print(num_test)
   num_test = num_test + 1
