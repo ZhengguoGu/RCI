@@ -54,6 +54,7 @@ while(num_test <= dim(condition)[1]){
   
   
   theta_pre <- rnorm(1000, mean = 0, sd = 1)
+  theta_pre <- sort(theta_pre)
   theta_post <- theta_pre + condition[num_test, 3] 
   
   # some of the persons may show carry-over effects
@@ -99,7 +100,7 @@ while(num_test <= dim(condition)[1]){
     # 3. alternative equation 3
     SE3 <- sd_D * sqrt(1 - rDD)
     
-    sig_eq0 <- (abs(D_score / SE0) > 1.645)  #thus, false positive
+    sig_eq0 <- (abs(D_score / SE0) > 1.645)  
     sig_eq1 <- (abs(D_score / SE1) > 1.645)
     sig_eq2 <- (abs(D_score / SE2) > 1.645)
     sig_eq3 <- (abs(D_score / SE3) > 1.645)
@@ -118,11 +119,12 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-
-plot(Final_result[[6]][,2], ylim = c(0, 1), type = "l")
-lines(Final_result[[6]][,3], col = "red")
-lines(Final_result[[6]][,4], col = "green")
-lines(Final_result[[6]][,5], col = "purple")
+head(Final_result[[30]])
+newres <- Final_result[[30]][order(Final_result[[30]][, 1]), ]
+plot(newres[,2], ylim = c(0, 1), type = "l")
+lines(newres[,3], col = "red")
+lines(newres[,4], col = "green")
+lines(newres[,5], col = "purple")
 
 plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
 lines(Final_result[[1]][,3], col = "red")

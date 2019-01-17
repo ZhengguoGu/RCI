@@ -29,7 +29,7 @@ Final_result <- list()
 num_test <- 1
 while(num_test <= dim(condition)[1]){
   
-  if (condition[num_test, 2] == "parallel") {
+  if (condition[num_test, 2] == "parallel") { #identical item parameters
     
     itempar <- matrix(NA,condition[num_test, 1],5)
     itempar[,1] <- runif(1,1.5,2.5)   # discrimination
@@ -39,7 +39,7 @@ while(num_test <= dim(condition)[1]){
     itempar[,4] <- avg_beta + .25
     itempar[,5] <- avg_beta + .75
     
-  } else {
+  } else { #non-identical item parameters
     
     itempar <- matrix(NA,condition[num_test, 1],5)
     itempar[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
@@ -53,6 +53,7 @@ while(num_test <= dim(condition)[1]){
   
   
   theta <- rnorm(1000, mean = 0, sd = 1)
+  theta <- sort(theta)
   # some of the persons may show carry-over effects
   if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
     NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
@@ -61,7 +62,7 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(2)
+  cl <- makeCluster(4)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -116,9 +117,13 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-plot(Final_result[[6]][,2], ylim = c(0, 1), type = "l")
-lines(Final_result[[6]][,3], col = "red")
+plot(Final_result[[16]][,5], ylim = c(0, 1), type = "l")
+lines(Final_result[[18]][,3], col = "red")
+lines(Final_result[[18]][,4], col = "green")
+lines(Final_result[[18]][,5], col = "purple")
 
+plot(Final_result[[18]][,5], col = "green")
 
 plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
 lines(Final_result[[1]][,3], col = "red")
+

@@ -9,6 +9,7 @@ library(psychometric)
 library(doSNOW)
 library(doRNG)
 library(MASS)
+library(stats)
 
 source(file = "some_functions.R")
 
@@ -94,6 +95,8 @@ while(num_test <= dim(condition)[1]){
   
   
   theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), empirical = FALSE)
+  theta <- theta[order(stats::mahalanobis(theta, 0, cov=matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), inverted = FALSE)),] #accending order in terms of mahalanobis distance
+
   
   # some of the persons may show carry-over effects
   if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
@@ -106,7 +109,6 @@ while(num_test <= dim(condition)[1]){
   cl <- makeCluster(2)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
-    
     
     RCI_0 <- 0
     RCI_1 <- 0
