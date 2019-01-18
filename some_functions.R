@@ -68,3 +68,7 @@ carry_over <- function(pre, post, rand_index){
 }
 
 
+# 4 Bonferroni
+bonfer <- function(p_val, alpha_M){
+  
+}
