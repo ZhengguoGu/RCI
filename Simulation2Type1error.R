@@ -114,6 +114,7 @@ while(num_test <= dim(condition)[1]){
     RCI_1 <- 0
     RCI_2 <- 0
     RCI_3 <- 0
+    
     for(j in 1:3){ #jth subtest
       
       pretest <- t(sapply(theta[, j], FUN = GRM_func,  itempar = itempar[[j]]))
