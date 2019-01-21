@@ -69,3 +69,17 @@ carry_over <- function(pre, post, rand_index){
 }
 
 
+# 4  Benjamini-Hochberg
+
+Ben_Hoch <- funtion(p_vec, Q){
+  
+  M <- length(p_vec)
+  r_pvalue <- rank(p_vec)
+  
+  BH_result <- array()
+  for(i in 1:M){ #note: of course using sapply is faster, but considering that M=3 in the simulation, using for loop isn't that bad. 
+     BH_result <- ifelse(p_vec[i] <- r_pvalue[i]/M*Q, 1, 0) #1: significant, 0:non-sig
+  }
+  
+  return(BH_result)
+}
