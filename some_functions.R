@@ -12,8 +12,8 @@ GRM_func <- function(abil, itempar){
 }
 
 
-# 2. p-value
-pvalue <- function(z_score, two_tail){
+# 2. p-value, bonferroni correction
+pvalue <- function(z_score, two_tail, alpha_M){
   
   if(missing(two_tail)){
     two_tail <- 2  #i.e., 2 tails
@@ -38,8 +38,9 @@ pvalue <- function(z_score, two_tail){
   }else{
     print("two_tail allows for 2 values only: 1: one-tail test, and 2: two-tail test")
   }
-    
-  return(p_value)
+  
+  bonferroni <- ifelse(p_value >= alpha_M, 1, 0)   #1: siginificant; 0: not-sig. 
+  return(c(p_value, bonferroni))
 }
 
 
@@ -68,7 +69,3 @@ carry_over <- function(pre, post, rand_index){
 }
 
 
-# 4 Bonferroni
-bonfer <- function(p_val, alpha_M){
-  
-}
