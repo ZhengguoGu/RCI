@@ -71,7 +71,7 @@ carry_over <- function(pre, post, rand_index){
 
 # 4  Benjamini-Hochberg
 
-Ben_Hoch <- funtion(p_vec, Q){
+Ben_Hoch <- function(p_vec, Q){
   
   M <- length(p_vec)
   r_pvalue <- rank(p_vec)
