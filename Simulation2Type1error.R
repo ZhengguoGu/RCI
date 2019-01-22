@@ -15,6 +15,11 @@ source(file = "some_functions.R")
 
 set.seed(1)
 
+#some values that should not be changed
+
+alpha_M <- .1/3 #experimental alpha = .1, M=3 (i.e., 3 subtests)
+Q <- .15 #false discovery rate
+
 ######################################################
 #########  Conditions
 ######################################################
@@ -115,6 +120,8 @@ while(num_test <= dim(condition)[1]){
     RCI_2 <- 0
     RCI_3 <- 0
     
+    p_vecregister <- list()
+      
     for(j in 1:3){ #jth subtest
       
       pretest <- t(sapply(theta[, j], FUN = GRM_func,  itempar = itempar[[j]]))
@@ -155,6 +162,14 @@ while(num_test <= dim(condition)[1]){
       RCI_1 <- RCI_1 + (D_score/SE1)^2
       RCI_2 <- RCI_2 + (D_score/SE2)^2
       RCI_3 <- RCI_3 + (D_score/SE3)^2
+      
+      p_vecregister[[j]] <- cbind(t(sapply(D_score/SE0, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),  #notice that t(sapply(..., FUN=pvalue),... ) generate two columns, one for p values, one for sig/nonsig
+                                  t(sapply(D_score/SE1, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
+                                  t(sapply(D_score/SE2, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
+                                  t(sapply(D_score/SE3, FUN = pvalue, two_tail = 2, alpha_M = alpha_M))
+                                  )  #p_vecregister[[j]] is a 1000x8 matrix, rows represent persons
+      
+       
     }
     
     sig_eq0 <- (RCI_0 > 4.6052)  #chi-square test at .1 level
@@ -162,7 +177,33 @@ while(num_test <= dim(condition)[1]){
     sig_eq2 <- (RCI_2 > 4.6052)
     sig_eq3 <- (RCI_3 > 4.6052)
     
-    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
+  
+    posthoc_bonf <- cbind(p_vecregister[[1]][, 2], p_vecregister[[2]][, 2], p_vecregister[[3]][, 2],  #eq0: subtest 1, 2, 3
+                          p_vecregister[[1]][, 4], p_vecregister[[2]][, 4], p_vecregister[[3]][, 4],  #eq1: subtest 1, 2, 3
+                          p_vecregister[[1]][, 6], p_vecregister[[2]][, 6], p_vecregister[[3]][, 6],  #eq2: subtest 1, 2, 3
+                          p_vecregister[[1]][, 8], p_vecregister[[2]][, 8], p_vecregister[[3]][, 8])  #eq3: subtest 1, 2, 3
+
+    colnames(posthoc_bonf) <- c("bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
+                                 "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
+                                 "bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
+                                 "bonf_eq3_sub1", "bonf_eq3_sub2", "bonf_eq3_sub3")
+    
+    posthoc_pvalues <- cbind(p_vecregister[[1]][, 1], p_vecregister[[2]][, 1], p_vecregister[[3]][, 1],  #eq0: subtest 1, 2, 3
+                             p_vecregister[[1]][, 3], p_vecregister[[2]][, 3], p_vecregister[[3]][, 3],  #eq1: subtest 1, 2, 3
+                             p_vecregister[[1]][, 5], p_vecregister[[2]][, 5], p_vecregister[[3]][, 5],  #eq2: subtest 1, 2, 3
+                             p_vecregister[[1]][, 7], p_vecregister[[2]][, 7], p_vecregister[[3]][, 7])  #eq3: subtest 1, 2, 3
+    
+    BenHochresults <- cbind(apply(posthoc_pvalues[, 1:3], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq0: subtest 1, 2, 3
+                            apply(posthoc_pvalues[, 4:6], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq1: subtest 1, 2, 3
+                            apply(posthoc_pvalues[, 7:9], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq2: subtest 1, 2, 3
+                            apply(posthoc_pvalues[, 10:12], MARGIN = 2, FUN = Ben_Hoch, Q = Q))  #eq3: subtest 1, 2, 3
+                            
+    colnames(BenHochresults) <- c("BenH_eq0_sub1", "BenH_eq0_sub2", "BenH_eq0_sub3", 
+                                  "BenH_eq1_sub1", "BenH_eq1_sub2", "BenH_eq1_sub3",
+                                  "BenH_eq2_sub1", "BenH_eq2_sub2", "BenH_eq2_sub3",
+                                  "BenH_eq3_sub1", "BenH_eq3_sub2", "BenH_eq3_sub3")
+    
+    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3, posthoc_bonf, BenHochresults)
     return(result)
     
   }
@@ -170,7 +211,15 @@ while(num_test <= dim(condition)[1]){
   
   Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
   result <- cbind(theta, Type1error)
-  colnames(result) <- c("theta1", "theta2", "theta3", "eq0", "eq1", "eq2", "eq3")
+  colnames(result) <- c("theta1", "theta2", "theta3", "omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
+                        "bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
+                        "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
+                        "bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
+                        "bonf_eq3_sub1", "bonf_eq3_sub2", "bonf_eq3_sub3",
+                        "BenH_eq0_sub1", "BenH_eq0_sub2", "BenH_eq0_sub3", 
+                        "BenH_eq1_sub1", "BenH_eq1_sub2", "BenH_eq1_sub3",
+                        "BenH_eq2_sub1", "BenH_eq2_sub2", "BenH_eq2_sub3",
+                        "BenH_eq3_sub1", "BenH_eq3_sub2", "BenH_eq3_sub3")
   Final_result[[num_test]] <- result
   
   print(num_test)
