@@ -10,6 +10,8 @@ library(doSNOW)
 library(doRNG)
 library(MASS)
 library(stats)
+library(rgl)  #for 3d heatplot
+
 
 source(file = "some_functions.R")
 
@@ -225,3 +227,9 @@ while(num_test <= dim(condition)[1]){
   print(num_test)
   num_test = num_test + 1
 }
+
+x <- sort(rnorm(1000))
+y <- rnorm(1000)
+z <- rnorm(1000) + atan2(x,y)
+plot3d(x, y, z, col=rainbow(1000))
+
