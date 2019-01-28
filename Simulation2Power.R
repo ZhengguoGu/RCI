@@ -229,5 +229,3 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-
-aa <- Final_result[[18]]
