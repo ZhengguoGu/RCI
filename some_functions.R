@@ -39,7 +39,7 @@ pvalue <- function(z_score, two_tail, alpha_M){
     print("two_tail allows for 2 values only: 1: one-tail test, and 2: two-tail test")
   }
   
-  bonferroni <- ifelse(p_value >= alpha_M, 1, 0)   #1: siginificant; 0: not-sig. 
+  bonferroni <- ifelse(p_value < alpha_M, 1, 0)   #1: siginificant; 0: not-sig. 
   return(c(p_value, bonferroni))
 }
 
