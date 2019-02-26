@@ -63,7 +63,8 @@ carry_over <- function(pre, post, rand_index){
   ind3 <- (abs(pre-post)==1 )
   new_post[ind3] <- pre[ind3]
   
-  new_post[rand_index] <- post[rand_index]  #those who dont show effects are kept unchanged. 
+  new_post[rand_index] <- post[rand_index]  #those who dont show effects are kept unchanged. (i.e., we first assume that all persons showing carry-over effect, 
+                                            #which is why we have ind1 ind2 and ind3. Then, we adjust the posttest scores, so that not all of the person showing effect.) 
   
   return(new_post)
 }
