@@ -14,7 +14,7 @@ library(stats)
 
 source(file = "some_functions.R")
 
-set.seed(1)
+set.seed(4)
 
 #some values that should not be changed
 

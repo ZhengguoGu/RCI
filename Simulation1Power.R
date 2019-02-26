@@ -11,7 +11,7 @@ library(doRNG)
 
 source(file = "some_functions.R")
 
-set.seed(1)
+set.seed(2)
 
 ######################################################
 #########  Conditions
