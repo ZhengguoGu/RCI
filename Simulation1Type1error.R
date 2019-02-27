@@ -62,7 +62,7 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(4)  #for parallel computing: set the number of coresß
+  cl <- makeCluster(6)  #for parallel computing: set the number of coresß
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -122,20 +122,23 @@ while(num_test <= dim(condition)[1]){
 library(ggplot2)
 library(gridExtra)
 library(grid)
+library(tidyr)
 pic_function <- function(data){
-  p <- ggplot(data, aes(data$theta)) + 
-    geom_line(aes(y = data$eq0, colour = "Eq0")) + 
-    geom_line(aes(y = data$eq1, colour = "Eq1")) +
-    geom_line(aes(y = data$eq2, colour = "Eq2")) +
-    geom_line(aes(y = data$eq3, colour = "Eq3")) +
-    geom_hline(yintercept=0.1, linetype="dashed", color = "gray") +
-    scale_y_continuous(breaks = c(0, 0.1, .25, .5, .75, 1), limits = c(0,1)) +
-    xlim(-3, 3) +  #!!! by truncating the range of x, the plot will generate warnings 
+  longdata<- gather(data.frame(data), equation, result, eq0:eq3, factor_key=TRUE)
+  p <- ggplot(longdata, aes(x = longdata$theta, y = longdata$result, colour = longdata$equation)) + 
+    geom_line(aes(group = longdata$equation))  +
+    scale_y_continuous(breaks = c(0, 0.1, .4), limits = c(0,.4)) +
+    geom_hline(yintercept=0.1, linetype="dashed", color = "black") +
+    xlim(-3, 3) + 
+    theme(legend.position = "none", axis.text=element_text(size=8), 
+          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10)) +
     labs(x=expression(theta[pre]), y="Type-I error rate") +
-    theme(legend.title = element_blank(), legend.position = c(.85, .8), legend.text=element_text(size=10), axis.text=element_text(size=10), 
-          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10))
+    facet_grid(equation ~ .)
   return(p)
-}
+} #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
+
+
+
 ### 1. test length against carryover effect, when identical items  ####
 
 condition[15, ]
@@ -174,3 +177,21 @@ grid.arrange(
   p7, p8, p9,
   nrow = 3
 )
+
+
+
+####### backup functions, not used #########
+pic_function <- function(data){
+  p <- ggplot(data, aes(data$theta)) + 
+    geom_line(aes(y = data$eq0, colour = "Eq0")) + 
+    geom_line(aes(y = data$eq1, colour = "Eq1")) +
+    geom_line(aes(y = data$eq2, colour = "Eq2")) +
+    geom_line(aes(y = data$eq3, colour = "Eq3")) +
+    geom_hline(yintercept=0.1, linetype="dashed", color = "gray") +
+    scale_y_continuous(breaks = c(0, 0.1, .25, .5, .75, 1), limits = c(0,1)) +
+    xlim(-3, 3) +  #!!! by truncating the range of x, the plot will generate warnings 
+    labs(x=expression(theta[pre]), y="Type-I error rate") +
+    theme(legend.title = element_blank(), legend.position = c(.85, .8), legend.text=element_text(size=10), axis.text=element_text(size=10), 
+          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10))
+  return(p)
+}
