@@ -50,7 +50,7 @@ carry_over <- function(pre, post, rand_index){
   
   #pre: pretest scores (a vector)
   #post: posttest scores (a vector)
-  #rand_index: the index marking the persons showing no carry-over effects
+  #rand_index: the index marking the persons showing NO carry-over effects
   
   new_post <- post
   

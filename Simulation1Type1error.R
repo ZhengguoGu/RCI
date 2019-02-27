@@ -62,14 +62,14 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(4)
+  cl <- makeCluster(4)  #for parallel computing: set the number of coresß
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
     pretest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))
     posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change, and if there would be no carry-over effects
   
-    if(condition[num_test, 3] != "non"){  
+    if(condition[num_test, 3] != "non"){  #i.e., there is carryover effect
       posttest <- carry_over(pretest, posttest, NoCarry_index)
     }
     
@@ -117,13 +117,60 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-plot(Final_result[[14]][,2], ylim = c(0, 1), type = "l")
-lines(Final_result[[14]][,3], col = "red")
-lines(Final_result[[14]][,4], col = "green")
-lines(Final_result[[14]][,5], col = "purple")
 
-plot(Final_result[[18]][,5], col = "green")
+################## summarizing results ############
+library(ggplot2)
+library(gridExtra)
+library(grid)
+pic_function <- function(data){
+  p <- ggplot(data, aes(data$theta)) + 
+    geom_line(aes(y = data$eq0, colour = "Eq0")) + 
+    geom_line(aes(y = data$eq1, colour = "Eq1")) +
+    geom_line(aes(y = data$eq2, colour = "Eq2")) +
+    geom_line(aes(y = data$eq3, colour = "Eq3")) +
+    geom_hline(yintercept=0.1, linetype="dashed", color = "gray") +
+    scale_y_continuous(breaks = c(0, 0.1, .25, .5, .75, 1), limits = c(0,1)) +
+    xlim(-3, 3) +  #!!! by truncating the range of x, the plot will generate warnings 
+    labs(x=expression(theta[pre]), y="Type-I error rate") +
+    theme(legend.title = element_blank(), legend.position = c(.85, .8), legend.text=element_text(size=10), axis.text=element_text(size=10), 
+          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10))
+  return(p)
+}
+### 1. test length against carryover effect, when identical items  ####
 
-plot(Final_result[[1]][,2], ylim = c(0, 1), type = "l")
-lines(Final_result[[1]][,3], col = "red")
+condition[15, ]
+p1 <- pic_function(data.frame(Final_result[[1]]))  #test length = 5, no carryover
+p2 <- pic_function(data.frame(Final_result[[7]]))  #test length = 5, 30% carryover
+p3 <- pic_function(data.frame(Final_result[[13]])) #test length = 5, 50% carryover
+p4 <- pic_function(data.frame(Final_result[[2]]))  #test length = 15, no carryover
+p5 <- pic_function(data.frame(Final_result[[8]]))  #test length = 15, 30% carryover
+p6 <- pic_function(data.frame(Final_result[[14]])) #test length = 15, 50% carryover
+p7 <- pic_function(data.frame(Final_result[[3]]))  #test length = 40, no carryover
+p8 <- pic_function(data.frame(Final_result[[9]]))  #test length = 40, 30% carryover
+p9 <- pic_function(data.frame(Final_result[[15]])) #test length = 40, 50% carryover
 
+grid.arrange(
+  p1, p2, p3,
+  p4, p5, p6,
+  p7, p8, p9,
+  nrow = 3
+) #warnings are due to the truncation of xlim
+  
+###  2. test length against carryover effect, when non-identical items  ####
+condition[18, ]
+p1 <- pic_function(data.frame(Final_result[[4]]))  #test length = 5, no carryover
+p2 <- pic_function(data.frame(Final_result[[10]]))  #test length = 5, 30% carryover
+p3 <- pic_function(data.frame(Final_result[[16]])) #test length = 5, 50% carryover
+p4 <- pic_function(data.frame(Final_result[[5]]))  #test length = 15, no carryover
+p5 <- pic_function(data.frame(Final_result[[11]]))  #test length = 15, 30% carryover
+p6 <- pic_function(data.frame(Final_result[[17]])) #test length = 15, 50% carryover
+p7 <- pic_function(data.frame(Final_result[[6]]))  #test length = 40, no carryover
+p8 <- pic_function(data.frame(Final_result[[12]]))  #test length = 40, 30% carryover
+p9 <- pic_function(data.frame(Final_result[[18]])) #test length = 40, 50% carryover
+
+grid.arrange(
+  p1, p2, p3,
+  p4, p5, p6,
+  p7, p8, p9,
+  nrow = 3
+)
