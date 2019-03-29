@@ -17,7 +17,6 @@ source(file = "some_functions.R")
 set.seed(3)
 
 #some values that should not be changed
-
 alpha_M <- .1/3 #experimental alpha = .1, M=3 (i.e., 3 subtests)
 Q <- .15 #false discovery rate
 

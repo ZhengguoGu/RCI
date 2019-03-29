@@ -17,7 +17,6 @@ source(file = "some_functions.R")
 set.seed(4)
 
 #some values that should not be changed
-
 alpha_M <- .1/3 #experimental alpha = .1, M=3 (i.e., 3 subtests)
 Q <- .15 #false discovery rate
 
@@ -26,7 +25,7 @@ Q <- .15 #false discovery rate
 ######################################################
 test_length <- c(5, 15, 40)  #all subtests consist of 5/15/40 items
 item_character <- c("parallel", "non-parallel")
-change_theta <- list(c(.5, .5, .5), c(1, 1, 1), c(0,.5, 1))
+change_theta <- list(c(.5, .5, .5), c(1, 1, 1), c(0.1,0.5, 0.9))
 cor_subdim <- c("small", "medium", "large")  #effect size of correlation in Sigma_1 (i.e., cov matrix pretest)
 cov_mat_sig1 <- list(matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), 
                      matrix(c(1, .3, .3, .3, 1, .3, .3, .3, 1), 3, 3), 
