@@ -27,10 +27,14 @@ Q <- .15 #false discovery rate
 test_length <- c(5, 15, 40)  #all subtests consist of 5/15/40 items
 item_character <- c("parallel", "non-parallel")
 change_theta <- list(c(.5, .5, .5), c(1, 1, 1), c(0,.5, 1))
+cor_subdim <- c("small", "medium", "large")  #effect size of correlation in Sigma_1 (i.e., cov matrix pretest)
+cov_mat_sig1 <- list(matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), 
+                     matrix(c(1, .3, .3, .3, 1, .3, .3, .3, 1), 3, 3), 
+                     matrix(c(1, .5, .5, .5, 1, .5, .5, .5, 1), 3, 3))
 CO_effect <- c("non", "30%", "50%")  # carry-over effects
 
-condition <- expand.grid(test_length, item_character, change_theta, CO_effect)
-colnames(condition) <- c("test_length", "item_character", "change_in_theta","carry-over")
+condition <- expand.grid(test_length, item_character, change_theta, CO_effect, cor_subdim)
+colnames(condition) <- c("test_length", "item_character", "change_in_theta","carry-over", "eff_size_cor_sub_attr")
 
 Final_result <- list()
 num_test <- 1
@@ -100,9 +104,16 @@ while(num_test <= dim(condition)[1]){
     
   }
   
+  if(condition[num_test, 5] == "small"){
+    cov_mat <- cov_mat_sig1[[1]]
+  }else if(condition[num_test, 5] == "medium"){
+    cov_mat <- cov_mat_sig1[[2]]
+  }else{
+    cov_mat <- cov_mat_sig1[[3]]
+  }
   
-  theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), empirical = FALSE)
-  theta_pre <- theta[order(stats::mahalanobis(theta, 0, cov=matrix(c(1, .1, .1, .1, 1, .1, .1, .1, 1), 3, 3), inverted = FALSE)),] #accending order in terms of mahalanobis distance
+  theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = cov_mat, empirical = FALSE)
+  theta_pre <- theta[order(stats::mahalanobis(theta, 0, cov = cov_mat, inverted = FALSE)),] #accending order in terms of mahalanobis distance
   
   theta_post <- sweep(theta_pre, MARGIN = 2, condition[num_test, 3][[1]], "+")  #note "condition[num_test, 3][[1]]" [[1]] is needed (orginal data are stored in a list)
   
