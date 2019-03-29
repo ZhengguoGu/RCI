@@ -112,7 +112,9 @@ while(num_test <= dim(condition)[1]){
   }
   
   theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = cov_mat, empirical = FALSE)
-  theta_pre <- theta[order(stats::mahalanobis(theta, 0, cov = cov_mat, inverted = FALSE)),] #accending order in terms of mahalanobis distance
+  m_distance <- stats::mahalanobis(theta, 0, cov = cov_mat, inverted = FALSE)
+  theta_pre <- theta[order(m_distance),] #accending order in terms of mahalanobis distance
+  m_distance_ordered <- m_distance[order(m_distance)]
   
   theta_post <- sweep(theta_pre, MARGIN = 2, condition[num_test, 3][[1]], "+")  #note "condition[num_test, 3][[1]]" [[1]] is needed (orginal data are stored in a list)
   
@@ -223,8 +225,8 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
-  result <- cbind(theta, Type1error)
-  colnames(result) <- c("theta1", "theta2", "theta3", "omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
+  result <- cbind(theta_pre, m_distance_ordered,  Type1error)
+  colnames(result) <- c("theta1", "theta2", "theta3", "mahalanobis","omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
                         "bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
                         "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
                         "bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
@@ -239,3 +241,26 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
+
+################## summarizing results ############
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(tidyr)
+
+###### plots for omnibus tests
+pic_function <- function(data){
+  
+  longdata<- gather(data.frame(data[, 4:8]), equation, result, omni_eq0:omni_eq3, factor_key=TRUE)
+  p <- ggplot(longdata, aes(x = longdata$mahalanobis, y = longdata$result, colour = longdata$equation)) + 
+    geom_line(aes(group = longdata$equation))  +
+    scale_y_continuous(breaks = c(0, .5, 1), limits = c(0,1)) +
+    theme(legend.position = "none", axis.text=element_text(size=8), 
+          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10)) +
+    labs(x=expression(theta[pre]), y="Power") +
+    facet_grid(equation ~ .)
+  return(p)
+} #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
+
+p1 <- pic_function(data.frame(Final_result[[1]]))   #test length = 5, parallel, magnitude_change = .5, no carryover
+p1
