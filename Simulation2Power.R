@@ -140,7 +140,7 @@ while(num_test <= dim(condition)[1]){
     for(j in 1:3){ #jth subtest
       
       pretest <- t(sapply(theta_pre[, j], FUN = GRM_func,  itempar = itempar[[j]]))
-      posttest <- t(sapply(theta_post[, j], FUN = GRM_func,  itempar = itempar[[j]]))  #there is no change, and if there would be no carry-over effects
+      posttest <- t(sapply(theta_post[, j], FUN = GRM_func,  itempar = itempar[[j]]))  # if there would be no carry-over effects
       
       if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
         posttest <- carry_over(pretest, posttest, NoCarry_index)
@@ -224,8 +224,8 @@ while(num_test <= dim(condition)[1]){
   }
   stopCluster(cl)
   
-  Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
-  result <- cbind(theta_pre, m_distance_ordered,  Type1error)
+  Power_results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
+  result <- cbind(theta_pre, m_distance_ordered,  Power_results)
   colnames(result) <- c("theta1", "theta2", "theta3", "mahalanobis","omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
                         "bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
                         "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
