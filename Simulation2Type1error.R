@@ -189,12 +189,13 @@ while(num_test <= dim(condition)[1]){
     sig_eq2 <- (RCI_2 > 4.6052)
     sig_eq3 <- (RCI_3 > 4.6052)
     
-  
+    
     posthoc_bonf <- cbind(p_vecregister[[1]][, 2], p_vecregister[[2]][, 2], p_vecregister[[3]][, 2],  #eq0: subtest 1, 2, 3
                           p_vecregister[[1]][, 4], p_vecregister[[2]][, 4], p_vecregister[[3]][, 4],  #eq1: subtest 1, 2, 3
                           p_vecregister[[1]][, 6], p_vecregister[[2]][, 6], p_vecregister[[3]][, 6],  #eq2: subtest 1, 2, 3
                           p_vecregister[[1]][, 8], p_vecregister[[2]][, 8], p_vecregister[[3]][, 8])  #eq3: subtest 1, 2, 3
-
+    #comment: how the data are organized in posthoc_bonf is a bit weird, but this is for later (see posthoc_pvalues and BenHochresults)
+    
     colnames(posthoc_bonf) <- c("bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
                                  "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
                                  "bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
