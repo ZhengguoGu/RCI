@@ -124,7 +124,7 @@ while(num_test <= dim(condition)[1]){
   }
   
  
-  cl <- makeCluster(4)
+  cl <- makeCluster(6)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     

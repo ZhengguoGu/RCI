@@ -126,7 +126,7 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(4)
+  cl <- makeCluster(6)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -241,26 +241,25 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
+save(Final_result, file = "results_simulation2Power.RData")
+
 
 ################## summarizing results ############
-library(ggplot2)
-library(gridExtra)
-library(grid)
-library(tidyr)
-
-###### plots for omnibus tests
-pic_function <- function(data){
+categorize_mahalanobis <- function(mydata, percentiles, labels_perc){
   
-  longdata<- gather(data.frame(data[, 4:8]), equation, result, omni_eq0:omni_eq3, factor_key=TRUE)
-  p <- ggplot(longdata, aes(x = longdata$mahalanobis, y = longdata$result, colour = longdata$equation)) + 
-    geom_line(aes(group = longdata$equation))  +
-    scale_y_continuous(breaks = c(0, .5, 1), limits = c(0,1)) +
-    theme(legend.position = "none", axis.text=element_text(size=8), 
-          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10)) +
-    labs(x=expression(theta[pre]), y="Power") +
-    facet_grid(equation ~ .)
-  return(p)
-} #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
+  perc_index <- quantile(mydata, percentiles)
+  mydata <- data.frame(mydata)
+  mydata$category <- cut(aa$mahalanobis, 
+                         breaks=c(-Inf, bb, Inf), 
+                         labels=labels_perc, 
+                         right = TRUE)
+  new_results <- aggregate(mydata[, 1:(ncol(mydata)-1)], by = list(mydata$category), FUN = mean)
+  return(new_results)
+}
 
-p1 <- pic_function(data.frame(Final_result[[1]]))   #test length = 5, parallel, magnitude_change = .5, no carryover
-p1
+cate_final <- list()
+for(i in 1:162){
+  cate_final[[i]] <- categorize_mahalanobis(Final_result[[i]], percentiles = c(.25, .5, .75), 
+                                            labels_perc = c("(0, 25%]", "(25%, 50%]", "(50%, 75%]", "(75%, 100%]"))
+}
+
