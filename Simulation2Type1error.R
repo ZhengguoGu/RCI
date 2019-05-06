@@ -112,8 +112,9 @@ while(num_test <= dim(condition)[1]){
   
   
   theta <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = cov_mat, empirical = FALSE)
-  theta <- theta[order(stats::mahalanobis(theta, 0, cov = cov_mat, inverted = FALSE)),] #accending order in terms of mahalanobis distance
-
+  m_distance <- stats::mahalanobis(theta, 0, cov = cov_mat, inverted = FALSE)
+  theta <- theta[order(m_distance),] #accending order in terms of mahalanobis distance
+  m_distance_ordered <- m_distance[order(m_distance)]
   
   # some of the persons may show carry-over effects
   if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
@@ -223,8 +224,8 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   Type1error <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
-  result <- cbind(theta, Type1error)
-  colnames(result) <- c("theta1", "theta2", "theta3", "omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
+  result <- cbind(theta,m_distance_ordered,  Type1error)
+  colnames(result) <- c("theta1", "theta2", "theta3", "mahalanobis", "omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3",
                         "bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
                         "bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
                         "bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
