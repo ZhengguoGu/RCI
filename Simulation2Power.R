@@ -274,6 +274,13 @@ for(i in 1:162){
 }
 
 
+
+
+
+
+
+########################### below are not used #########################################################
+
 box_omnibus <- function(row_index, cate_final, x_title){
   #row_index: this refers to the rows in the matrix "condition". Each row is a cell. Thus, we pick the cells that we want to plot
   #           for example, row_index <- condition$test_length == 5, all cells with test lengths = 5.
