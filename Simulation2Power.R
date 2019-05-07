@@ -353,6 +353,8 @@ box_omnibus(row_index, cate_final, x_title = "50% of Persons Showing Carry-Over 
 
 # boxplots: effects correlations among dimensions
 row_index <- condition$eff_size_cor_sub_attr == "small"
-box_omnibus(row_index, cate_final, x_title = "Small Effect sizes of Correlations Among Dimensions")
+box_omnibus(row_index, cate_final, x_title = "Small Effect Size of Correlations Among Dimensions")
 row_index <- condition$eff_size_cor_sub_attr == "medium"
-box_omnibus(row_index, cate_final, x_title = "Medium Effect sizes of Correlations Among Dimensions")
+box_omnibus(row_index, cate_final, x_title = "Medium Effect Size of Correlations Among Dimensions")
+row_index <- condition$eff_size_cor_sub_attr == "large"
+box_omnibus(row_index, cate_final, x_title = "Large Effect Size of Correlations Among Dimensions")
