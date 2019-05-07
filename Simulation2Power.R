@@ -248,7 +248,7 @@ save(Final_result, file = "results_simulation2Power.RData")
 categorize_mahalanobis <- function(mydata, percentiles, labels_perc){
   
   mydata <- data.frame(mydata)
-  perc_index <- quantile(mydata$mahalanobis, percentiles)
+  perc_index <- quantile(mydata$mahalanobis, probs = percentiles)
   mydata$category <- cut(mydata$mahalanobis, 
                          breaks=c(-Inf, perc_index, Inf), 
                          labels=labels_perc, 
@@ -263,11 +263,13 @@ for(i in 1:162){
                                             labels_perc = c("close", "medium", "far"))
 }
 
+
 ############### some boxplots ###############
 
 library(ggplot2)
 library(reshape2)
 library(gridExtra)
+library(latex2exp)
 
 # boxplots: test length  #####
 index <- condition$test_length == 5
@@ -280,15 +282,22 @@ for(i in 1:sum(index)){
   }
 }
 omni_result <- omni_result[-1, ]
+colnames(omni_result)[2:5] <- c("Omnibus+Eq(5)", "Omnibus+Eq(11)", "Omnibus+Eq(14)", "Omnibus+Eq(15)")
 
-dat_temp <- melt(omni_result,id.vars="Group.1", measure.vars=c("omni_eq0", "omni_eq1", "omni_eq2", "omni_eq3"))
+dat_temp <- melt(omni_result,id.vars="Group.1", measure.vars=c("Omnibus+Eq(5)", "Omnibus+Eq(11)", "Omnibus+Eq(14)", "Omnibus+Eq(15)"))
+dat_temp$Group.1 <- factor(dat_temp$Group.1, levels = c("close", "medium", "far"))  #in this way we make sure the correct order of labels
 p <- ggplot(dat_temp, aes(x = Group.1, y = value, fill = Group.1)) +
   geom_boxplot()+
   theme_bw() +
-  theme(plot.title = element_text(size = 14, family = "Tahoma", face = "bold"),
-        text = element_text(size = 14, family = "Tahoma"),
+  theme(text = element_text(size = 14, family = "Tahoma"),
         axis.title = element_text(face="bold"), 
+        axis.title.x = element_blank(),
         axis.text.x=element_blank(), 
-        axis.ticks.x = element_blank())+
-  facet_grid(. ~ variable)
+        axis.ticks.x = element_blank(),
+        legend.title=element_text(size=12), 
+        legend.text=element_text(size=12)) +
+        scale_y_continuous(name = "Power", limits = c(0, 1)) +
+        facet_grid(. ~ variable) +
+        guides(fill=guide_legend(title= expression(paste("Closeness to ", mu [theta][pre]))))
 p
+
