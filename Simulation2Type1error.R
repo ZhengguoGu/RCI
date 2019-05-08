@@ -300,7 +300,7 @@ box_omnibus <- function(row_index, cate_final, x_title){
           legend.title=element_text(size=12), 
           legend.text=element_text(size=12)) +
           geom_hline(yintercept=0.1, linetype="dashed", color = "black") +
-          scale_y_continuous(name = "Type-I Error", limits = c(0, 1), breaks = c(0, 0.1, .25, .5, .75, 1)) +
+          scale_y_continuous(name = "Type-I Error Rate", limits = c(0, 1), breaks = c(0, 0.1, .25, .5, .75, 1)) +
           facet_grid(. ~ variable) +
           guides(fill=guide_legend(title= expression(paste("Closeness to ", mu [theta][pre]))))
   
