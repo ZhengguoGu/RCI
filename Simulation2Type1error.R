@@ -321,3 +321,19 @@ row_index <- condition$item_character == "parallel"
 box_omnibus(row_index, cate_final, x_title = "Item Characteristics: Identical Item Parameters")
 row_index <- condition$item_character == "non-parallel"
 box_omnibus(row_index, cate_final, x_title = "Item Characteristics: Non-Identical Item Parameters")
+
+# boxplots: carry-over effect
+row_index <- condition$`carry-over` == 'non'
+box_omnibus(row_index, cate_final, x_title = "No Carry-Over Effects")
+row_index <- condition$`carry-over` == "30%"
+box_omnibus(row_index, cate_final, x_title = "30% of Persons Showing Carry-Over Effects")
+row_index <- condition$`carry-over` == "50%"
+box_omnibus(row_index, cate_final, x_title = "50% of Persons Showing Carry-Over Effects")
+
+# boxplots: effects correlations among dimensions
+row_index <- condition$eff_size_cor_sub_attr == "small"
+box_omnibus(row_index, cate_final, x_title = "Small Effect Size of Correlations Among Dimensions")
+row_index <- condition$eff_size_cor_sub_attr == "medium"
+box_omnibus(row_index, cate_final, x_title = "Medium Effect Size of Correlations Among Dimensions")
+row_index <- condition$eff_size_cor_sub_attr == "large"
+box_omnibus(row_index, cate_final, x_title = "Large Effect Size of Correlations Among Dimensions")
