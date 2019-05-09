@@ -62,7 +62,7 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(6)  #for parallel computing: set the number of coresß
+  cl <- makeCluster(12)  #for parallel computing: set the number of cores
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -114,9 +114,11 @@ while(num_test <= dim(condition)[1]){
   colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
   Final_result[[num_test]] <- result
   
+  print(num_test)
   num_test = num_test + 1
 }
 
+save(Final_result, file = "simulation1_type1error.RData")
 
 ################## summarizing results ############
 library(ggplot2)
@@ -124,7 +126,9 @@ library(gridExtra)
 library(grid)
 library(tidyr)
 pic_function <- function(data){
-  longdata<- gather(data.frame(data), equation, result, eq0:eq3, factor_key=TRUE)
+  data = data.frame(data)
+  colnames(data)[2:5] <- c("Eq(5)", "Eq(11)", "Eq(14)", "Eq(15)")
+  longdata<- gather(data, equation, result, "Eq(5)":"Eq(15)", factor_key=TRUE)
   p <- ggplot(longdata, aes(x = longdata$theta, y = longdata$result, colour = longdata$equation)) + 
     geom_line(aes(group = longdata$equation))  +
     scale_y_continuous(breaks = c(0, 0.1, .4), limits = c(0,.4)) +
@@ -132,7 +136,7 @@ pic_function <- function(data){
     xlim(-3, 3) + 
     theme(legend.position = "none", axis.text=element_text(size=8), 
           axis.title.x = element_text(size=10), axis.title.y = element_text(size=10)) +
-    labs(x=expression(theta[pre]), y="Type-I error rate") +
+    labs(x=expression(theta[pre]), y="Type-I Error Rate") +
     facet_grid(equation ~ .)
   return(p)
 } #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
