@@ -134,9 +134,9 @@ pic_function <- function(data){
     geom_line(aes(group = longdata$equation))  +
     scale_y_continuous(breaks = c(0, .5, 1), limits = c(0,1)) +
     xlim(-3, 3) + 
-    theme(legend.position = "none", axis.text=element_text(size=8), 
-          axis.title.x = element_text(size=10), axis.title.y = element_text(size=10)) +
-    labs(x=expression(theta[pre]), y="Power") +
+    theme(legend.position = "none", axis.text=element_text(size=12, color="black"), 
+          axis.title.x = element_text(size=12), axis.title.y = element_text(size=12)) +
+    labs(x=expression(theta[1]), y="Power") +
     facet_grid(equation ~ .)
   return(p)
 } #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
