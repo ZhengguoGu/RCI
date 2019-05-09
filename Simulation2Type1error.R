@@ -386,3 +386,56 @@ testlength_mat_se <- cbind(test_cond, testlength_mat_se)
 save(testlength_mat, testlength_mat_se, file = 'type1_table_testlength.RData')
 write.csv(testlength_mat, file = 'type1_table_testlength_median.csv')
 write.csv(testlength_mat_se, file = 'type1_table_testlength_se.csv')
+
+# table for item characteristics
+row_index <- condition$item_character == "parallel"
+temp_mat1 <- sd_median(cate_final, row_index)
+row_index <- condition$item_character == "non-parallel"
+temp_mat2 <- sd_median(cate_final, row_index)
+itemCharacter_mat <- rbind(temp_mat1$median, temp_mat2$median)
+item_cond <- c("parallel", "parallel", "parallel",
+               "non-parallel", "non-parallel", "non-parallel")
+itemCharacter_mat <- cbind(item_cond, itemCharacter_mat)
+itemCharacter_mat_se <- rbind(temp_mat1$se, temp_mat2$se)
+itemCharacter_mat_se <- cbind(item_cond, itemCharacter_mat_se)
+save(itemCharacter_mat, itemCharacter_mat_se, file = "type1_item_characteristic.RData")
+write.csv(itemCharacter_mat, file = "type1_table_itemcharacter_median.csv")
+write.csv(itemCharacter_mat_se, file = "type1_table_itemcharacter_se.csv")
+
+# table for carry-over
+row_index <- condition$`carry-over` == 'non'
+temp_mat1 <- sd_median(cate_final, row_index)
+row_index <- condition$`carry-over` == "30%"
+temp_mat2 <- sd_median(cate_final, row_index)
+row_index <- condition$`carry-over` == "50%"
+temp_mat3 <- sd_median(cate_final, row_index)
+carry_mat <- rbind(temp_mat1$median, temp_mat2$median, temp_mat3$median)
+test_cond <- c("No carry", "No carry", "No carry",
+               "30%", "30%", "30%",
+               "50%", "50%", "50%")
+carry_mat <- cbind(test_cond, carry_mat)
+carry_mat_se <- rbind(temp_mat1$se, temp_mat2$se, temp_mat3$se)
+carry_mat_se <- cbind(test_cond, carry_mat_se)
+
+save(carry_mat, carry_mat_se, file = "type1_table_carryover.RData")
+write.csv(carry_mat, file = "type1_table_carryover_median.csv")
+write.csv(carry_mat_se, file = "type1_table_carryover_se.csv")
+
+# table for corre effect
+row_index <- condition$eff_size_cor_sub_attr == "small"
+temp_mat1 <- sd_median(cate_final, row_index)
+row_index <- condition$eff_size_cor_sub_attr == "medium"
+temp_mat2 <- sd_median(cate_final, row_index)
+row_index <- condition$eff_size_cor_sub_attr == "large"
+temp_mat3 <- sd_median(cate_final, row_index)
+cor_effect_mat <- rbind(temp_mat1$median, temp_mat2$median, temp_mat3$median)
+test_cond <- c("Small", "Small", "Small",
+               "Medium", "Medium", "Medium",
+               "Large", "Large", "Large")
+cor_effect_mat <- cbind(test_cond, cor_effect_mat)
+cor_effect_mat_se <- rbind(temp_mat1$se, temp_mat2$se, temp_mat3$se)
+cor_effect_mat_se <- cbind(test_cond, cor_effect_mat_se)
+
+save(cor_effect_mat, cor_effect_mat_se, file = "type1_table_cor_effect.RData")
+write.csv(cor_effect_mat, file = "type1_table_coreffect_median.csv")
+write.csv(cor_effect_mat_se, file = "type1_table_coreffect_se.csv")
