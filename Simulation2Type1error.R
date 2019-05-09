@@ -294,15 +294,16 @@ box_omnibus <- function(row_index, cate_final, x_title){
     geom_boxplot()+
     theme_bw() +
     scale_x_discrete(name = x_title) +
-    theme(text = element_text(size = 14, family = "Tahoma"),
+    theme(text = element_text(size = 14,  color="black"),
           axis.text.x=element_blank(), 
           axis.ticks.x = element_blank(),
+          axis.text.y=element_text(size = 12, color = "black"), 
           legend.title=element_text(size=12), 
           legend.text=element_text(size=12)) +
           geom_hline(yintercept=0.1, linetype="dashed", color = "black") +
           scale_y_continuous(name = "Type-I Error Rate", limits = c(0, 1), breaks = c(0, 0.1, .25, .5, .75, 1)) +
           facet_grid(. ~ variable) +
-          guides(fill=guide_legend(title= expression(paste("Closeness to ", mu [theta][pre]))))
+          guides(fill=guide_legend(title= expression(paste("Closeness to ", mu [theta][1]))))
   
   return(p)
   
