@@ -63,7 +63,7 @@ while(num_test <= dim(condition)[1]){
     NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
   }
   
-  cl <- makeCluster(6)
+  cl <- makeCluster(12)
   registerDoSNOW(cl)
   sim_result <- foreach(i = 1:100) %dorng% {
     
@@ -115,16 +115,21 @@ while(num_test <= dim(condition)[1]){
   colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
   Final_result[[num_test]] <- result
   
+  print(num_test)
   num_test = num_test + 1
 }
 
+save(Final_result, file = "simulation1_power.RData")
 ################## summarizing results ############
+
 library(ggplot2)
 library(gridExtra)
 library(grid)
 library(tidyr)
 pic_function <- function(data){
-  longdata<- gather(data.frame(data), equation, result, eq0:eq3, factor_key=TRUE)
+  data = data.frame(data)
+  colnames(data)[2:5] <- c("Eq(5)", "Eq(11)", "Eq(14)", "Eq(15)")
+  longdata<- gather(data, equation, result, "Eq(5)":"Eq(15)", factor_key=TRUE)
   p <- ggplot(longdata, aes(x = longdata$theta, y = longdata$result, colour = longdata$equation)) + 
     geom_line(aes(group = longdata$equation))  +
     scale_y_continuous(breaks = c(0, .5, 1), limits = c(0,1)) +
