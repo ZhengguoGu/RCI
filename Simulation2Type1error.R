@@ -369,6 +369,23 @@ sd_median <- function(cate_data, row_index){
 }
 
 
+
+# table: 40 items, non-identical parameters, large effect size
+condition_number <- 1:54
+row_index <- (condition$test_length==40) & (condition$item_character=="parallel") & (condition$eff_size_cor_sub_attr=="large") & (condition$`carry-over`=='non')
+condition_number[row_index]
+part1 <- cate_final[[condition_number[row_index]]]
+row_index <- (condition$test_length==40) & (condition$item_character=="parallel") & (condition$eff_size_cor_sub_attr=="large") & (condition$`carry-over`=="30%")
+condition_number[row_index]
+part2 <- cate_final[[condition_number[row_index]]]
+row_index <- (condition$test_length==40) & (condition$item_character=="parallel") & (condition$eff_size_cor_sub_attr=="large") & (condition$`carry-over`=="50%")
+condition_number[row_index]
+part3 <- cate_final[[condition_number[row_index]]]
+part_together <- rbind(part1, part2, part3)
+save(part_together, file = "post_hoc_type.RData")
+write.csv(part_together, file = "post_hoc_type.csv")
+
+################################# below are old script for creating more tables #################################################
 # table for test length
 row_index <- condition$test_length == 5
 temp_mat1 <- sd_median(cate_final, row_index)

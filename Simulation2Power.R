@@ -360,7 +360,27 @@ row_index <- condition$eff_size_cor_sub_attr == "large"
 box_omnibus(row_index, cate_final, x_title = "Large Effect Size of Correlations Among Dimensions")
 
 
-########### tables for the posthot tests ######################################
+# table: 40 items, non-identical parameters, mixed change large effect size
+condition_number <- 1:nrow(condition)
+mixed_change <- array()
+for(i in 1:nrow(condition)){
+  mixed_change[i] <- ifelse(condition$change_in_theta[[i]][3] == 0.9, TRUE, FALSE)  #mixed change
+}
+row_index <- (condition$test_length==40) & (condition$item_character=="non-parallel") & (condition$eff_size_cor_sub_attr=="large") & (mixed_change == TRUE) & (condition$`carry-over`=='non')
+condition_number[row_index]
+part1 <- cate_final[[condition_number[row_index]]]
+row_index <- (condition$test_length==40) & (condition$item_character=="non-parallel") & (condition$eff_size_cor_sub_attr=="large") & (mixed_change == TRUE) & (condition$`carry-over`=="30%")
+condition_number[row_index]
+part2 <- cate_final[[condition_number[row_index]]]
+row_index <- (condition$test_length==40) & (condition$item_character=="non-parallel") & (condition$eff_size_cor_sub_attr=="large") & (mixed_change == TRUE) & (condition$`carry-over`=="50%")
+condition_number[row_index]
+part3 <- cate_final[[condition_number[row_index]]]
+part_together <- rbind(part1, part2, part3)
+save(part_together, file = "post_hoc_power.RData")
+write.csv(part_together, file = "post_hoc_power.csv")
+
+
+########### old tables for the posthot tests ######################################
 sd_median <- function(cate_data, row_index){
   #cate_data: the data matrix where persons are categorized into a few groups. 
   #row_index: this refers to the rows in the matrix "condition". Each row is a cell. Thus, we pick the cells that we want to plot
