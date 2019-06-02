@@ -83,11 +83,13 @@ while(num_test <= dim(condition)[1]){
   
     if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
       NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
+      NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
     }else if (condition[num_test, 3] == "50%"){
       NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
+      NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
     }
   
-    NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
+    
     
     cl <- makeCluster(12)  #for parallel computing: set the number of cores
     registerDoSNOW(cl)
@@ -162,7 +164,7 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-save(Final_result, file = "simulation1_type1error.RData")
+save(Final_result, file = "simulation1_type1error9personShowCarry.RData")
 
 ################## summarizing results ############
 library(ggplot2)
