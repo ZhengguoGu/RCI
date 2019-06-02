@@ -58,11 +58,14 @@ while(num_test <= dim(condition)[1]){
   #Semi_result <- list()
   rep_n <- 1
   while(rep_n <= 50){
-    theta <- rnorm(1000, mean = 0, sd = 1)
-    theta <- sort(theta)
-  
+    theta <- rnorm(1000, mean = 0, sd = 1)  #pretest
+    theta_change <- rnorm(1000, mean = .75, sd = sqrt(.14))
+    theta_change<- theta_change[sort(theta, index.return = T)$ix] #reorganize theta change according to the new order of pretest
+    theta <- sort(theta, index.return = T)$'x'  #reminder: we actually do not need to sort theta, but i keep it here in case in the future I might use it. 
+    
+    
     theta_index <- 1:1000
-    theta_RCI <- array(NA)  #night person indices in theta sample, whose RCI will be computed. 
+    theta_RCI <- array(NA)  #nine person indices in theta sample, whose RCI will be computed. 
     quantile_values <- quantile(theta, c(.1, .2, .3, .4, .5, .6, .7, .8, .9)) 
     theta_RCI[1] <- theta_index[abs(theta - quantile_values[1]) ==min(abs(theta - quantile_values[1]))][1]  #note, in case more than one theta satisfies, we choose the first one (i.e., [1]). 
     theta_RCI[2] <- theta_index[abs(theta - quantile_values[2]) ==min(abs(theta - quantile_values[2]))][1]
@@ -73,7 +76,10 @@ while(num_test <= dim(condition)[1]){
     theta_RCI[7] <- theta_index[abs(theta - quantile_values[7]) ==min(abs(theta - quantile_values[7]))][1]
     theta_RCI[8] <- theta_index[abs(theta - quantile_values[8]) ==min(abs(theta - quantile_values[8]))][1]
     theta_RCI[9] <- theta_index[abs(theta - quantile_values[9]) ==min(abs(theta - quantile_values[9]))][1]
-  # some of the persons may show carry-over effects
+    
+    theta_change[theta_RCI] <- 0  # type1 error rate, therefore theta_change for the 9 persons is equal to theta (i.e., pretest)
+    
+    # some of the persons may show carry-over effects
   
     if(condition[num_test, 3] == "30%"){  #introducing carry-over effects, if any
       NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
@@ -81,17 +87,17 @@ while(num_test <= dim(condition)[1]){
       NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
     }
   
-  
+    NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
+    
     cl <- makeCluster(12)  #for parallel computing: set the number of cores
     registerDoSNOW(cl)
     sim_result <- foreach(i = 1:100) %dorng% {
     
       pretest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))
-      posttest <- t(sapply(theta, FUN = GRM_func,  itempar = itempar))  #there is no change, and if there would be no carry-over effects
+      posttest <- t(sapply((theta+theta_change), FUN = GRM_func,  itempar = itempar))  
     
       if(condition[num_test, 3] != "non"){  #i.e., there is carryover effect
         posttest_temp <- carry_over(pretest, posttest, NoCarry_index)
-        posttest_temp[theta_RCI, ] <- posttest[theta_RCI, ]  # this is to make sure that carryover effect does not happen to the 9 persons (10th, 20th, ..., 90th percetiles)
         posttest <- posttest_temp
       }
     
