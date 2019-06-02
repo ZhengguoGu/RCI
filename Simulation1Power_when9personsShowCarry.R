@@ -20,7 +20,7 @@ set.seed(2)
 test_length <- c(5, 15, 40)
 item_character <- c("parallel", "non-parallel")
 CO_effect <- c("non", "30%", "50%")  # carry-over effects
-change_theta = c(0.5, 1)    
+change_theta = c(.75, 1.5)  
 
 condition <- expand.grid(test_length, item_character, change_theta,  CO_effect)
 colnames(condition) <- c("test_length", "item_character", "magnitude_change", "carry-over")
@@ -51,75 +51,118 @@ while(num_test <= dim(condition)[1]){
     
   }
   
+  #======
   
-  theta_pre <- rnorm(1000, mean = 0, sd = 1)
-  theta_pre <- sort(theta_pre)
-  theta_post <- theta_pre + condition[num_test, 3] 
+  Semi_result_eq0 <- list()
+  Semi_result_eq1 <- list()
+  Semi_result_eq2 <- list()
+  Semi_result_eq3 <- list()
+  #Semi_result <- list()
+  rep_n <- 1
+  while(rep_n <= 50){
   
-  # some of the persons may show carry-over effects
-  if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
-    NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
-  }else if (condition[num_test, 4] == "50%"){
-    NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
-  }
+    theta_pre <- rnorm(1000, mean = 0, sd = 1)
+    theta_change_temp <- rnorm(1000, mean = .75, sd = sqrt(.14))
+    theta_change_temp <- theta_change_temp[sort(theta_pre, index.return = T)$ix] #reorganize theta change according to the new order of pretest
+    theta_pre <- sort(theta_pre, index.return = T)$'x'  #reminder: we actually do not need to sort theta, but i keep it here in case in the future I might use it. 
   
-  cl <- makeCluster(12)
-  registerDoSNOW(cl)
-  sim_result <- foreach(i = 1:100) %dorng% {
-    
-    pretest <- t(sapply(theta_pre, FUN = GRM_func,  itempar = itempar))
-    posttest <- t(sapply(theta_post, FUN = GRM_func,  itempar = itempar))  
-    
-    if(condition[num_test, 4] != "non"){    #i.e., there is carryover effect
-      posttest <- carry_over(pretest, posttest, NoCarry_index)
+    theta_index <- 1:1000
+    theta_RCI <- array(NA)  #nine person indices in theta sample, whose RCI will be computed. 
+    quantile_values <- quantile(theta_pre, c(.1, .2, .3, .4, .5, .6, .7, .8, .9)) 
+    theta_RCI[1] <- theta_index[abs(theta_pre - quantile_values[1]) ==min(abs(theta_pre - quantile_values[1]))][1]  #note, in case more than one theta satisfies, we choose the first one (i.e., [1]). 
+    theta_RCI[2] <- theta_index[abs(theta_pre - quantile_values[2]) ==min(abs(theta_pre - quantile_values[2]))][1]
+    theta_RCI[3] <- theta_index[abs(theta_pre - quantile_values[3]) ==min(abs(theta_pre - quantile_values[3]))][1]
+    theta_RCI[4] <- theta_index[abs(theta_pre - quantile_values[4]) ==min(abs(theta_pre - quantile_values[4]))][1]
+    theta_RCI[5] <- theta_index[abs(theta_pre - quantile_values[5]) ==min(abs(theta_pre - quantile_values[5]))][1]
+    theta_RCI[6] <- theta_index[abs(theta_pre - quantile_values[6]) ==min(abs(theta_pre - quantile_values[6]))][1]
+    theta_RCI[7] <- theta_index[abs(theta_pre - quantile_values[7]) ==min(abs(theta_pre - quantile_values[7]))][1]
+    theta_RCI[8] <- theta_index[abs(theta_pre - quantile_values[8]) ==min(abs(theta_pre - quantile_values[8]))][1]
+    theta_RCI[9] <- theta_index[abs(theta_pre - quantile_values[9]) ==min(abs(theta_pre - quantile_values[9]))][1]
+  
+    theta_change_temp[theta_RCI] <- condition[num_test, 3]  #the 9 persons indexed by theta_RCi are the ones that we are interested in 
+    theta_post <- theta_pre + theta_change_temp 
+  
+    # some of the persons may show carry-over effects
+    if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
+      NoCarry_index <- sample(1000, floor(1000 * (1-0.3)), replace = FALSE)  #here we fix the persons who do not show carryover
+      NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
+    }else if (condition[num_test, 4] == "50%"){
+      NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
+      NoCarry_index <- setdiff(NoCarry_index, theta_RCI) #in this way, the 9 persons always show carry over
     }
+  
+    cl <- makeCluster(12)
+    registerDoSNOW(cl)
+    sim_result <- foreach(i = 1:100) %dorng% {
     
-    sum_pre <- rowSums(pretest)
-    sum_post <- rowSums(posttest)
+      pretest <- t(sapply(theta_pre, FUN = GRM_func,  itempar = itempar))
+      posttest <- t(sapply(theta_post, FUN = GRM_func,  itempar = itempar))  
+    
+      if(condition[num_test, 4] != "non"){    #i.e., there is carryover effect
+        posttest <- carry_over(pretest, posttest, NoCarry_index)
+      }
+    
+      sum_pre <- rowSums(pretest)
+      sum_post <- rowSums(posttest)
     
     
-    r12 <- cor(sum_pre, sum_post)
-    var_pre <- var(sum_pre)
-    sd_pre <- sd(sum_pre)
-    var_post <- var(sum_post)
-    sd_post <- sd(sum_post)
+      r12 <- cor(sum_pre, sum_post)
+      var_pre <- var(sum_pre)
+      sd_pre <- sd(sum_pre)
+      var_post <- var(sum_post)
+      sd_post <- sd(sum_post)
     
-    D_score <- sum_post - sum_pre
-    sd_D <- sd(D_score)
-    rDD <- psychometric::alpha(posttest - pretest)
+      D_score <- sum_post - sum_pre
+      sd_D <- sd(D_score)
+      rDD <- psychometric::alpha(posttest - pretest)
     
-    r11 <- psychometric::alpha(pretest)
-    r22 <- psychometric::alpha(posttest)
-    # 0. orginal equation for sigma_E_D_v 
-    SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
-    # 1. alternative equation 1
-    SE1 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
-    # 2. alternative equation 2
-    SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
-    # 3. alternative equation 3
-    SE3 <- sd_D * sqrt(1 - rDD)
+      r11 <- psychometric::alpha(pretest)
+      r22 <- psychometric::alpha(posttest)
+      # 0. orginal equation for sigma_E_D_v 
+      SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
+      # 1. alternative equation 1
+      SE1 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
+      # 2. alternative equation 2
+      SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
+      # 3. alternative equation 3
+      SE3 <- sd_D * sqrt(1 - rDD)
     
-    sig_eq0 <- (abs(D_score / SE0) > 1.645)  
-    sig_eq1 <- (abs(D_score / SE1) > 1.645)
-    sig_eq2 <- (abs(D_score / SE2) > 1.645)
-    sig_eq3 <- (abs(D_score / SE3) > 1.645)
+      sig_eq0 <- (abs(D_score / SE0) > 1.645)  
+      sig_eq1 <- (abs(D_score / SE1) > 1.645)
+      sig_eq2 <- (abs(D_score / SE2) > 1.645)
+      sig_eq3 <- (abs(D_score / SE3) > 1.645)
     
-    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
-    return(result)
+      result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
+      return(result)
     
+    }
+    stopCluster(cl)
+  
+    result <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
+  
+    colnames(result) <- c("eq0", "eq1", "eq2", "eq3")
+    #Semi_result[[rep_n]] <- result[theta_RCI, ] # we need the 9 persons. 
+    Semi_result_eq0[[rep_n]] <- result[theta_RCI, 1] # we need the 9 persons. 
+    Semi_result_eq1[[rep_n]] <- result[theta_RCI, 2] # we need the 9 persons. 
+    Semi_result_eq2[[rep_n]] <- result[theta_RCI, 3] # we need the 9 persons. 
+    Semi_result_eq3[[rep_n]] <- result[theta_RCI, 4] # we need the 9 persons. 
+    print(paste("rep: ", rep_n))
+    rep_n = rep_n + 1
+  
   }
-  stopCluster(cl)
   
-  Powers <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
-  result <- cbind(theta_pre, Powers)
-  colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
-  Final_result[[num_test]] <- result
+  eq0_result <- apply(matrix(unlist(Semi_result_eq0), nrow = 9 , byrow = F), MARGIN = 1, mean)
+  eq1_result <- apply(matrix(unlist(Semi_result_eq1), nrow = 9 , byrow = F), MARGIN = 1, mean)
+  eq2_result <- apply(matrix(unlist(Semi_result_eq2), nrow = 9 , byrow = F), MARGIN = 1, mean)
+  eq3_result <- apply(matrix(unlist(Semi_result_eq3), nrow = 9 , byrow = F), MARGIN = 1, mean)
   
+  Final_result[[num_test]] <- cbind(eq0_result, eq1_result, eq2_result, eq3_result)
+  colnames(Final_result[[num_test]])  <- c("eq0", "eq1", "eq2", "eq3")
   print(num_test)
   num_test = num_test + 1
 }
 
-save(Final_result, file = "simulation1_power.RData")
+save(Final_result, file = "simulation1_powerWhen9personsShowCarry.RData")
 ################## summarizing results ############
 
 library(ggplot2)
