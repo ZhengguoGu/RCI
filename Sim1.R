@@ -26,6 +26,8 @@ condition <- expand.grid(test_length, item_character, perc_change,  CO_effect)
 colnames(condition) <- c("test_length", "item_character", "perc_change", "carry-over")
 
 Final_result <- list()
+Power_mean_median <- matrix(NA, nrow(condition), 8)
+Type1_mean_median <- matrix(NA, nrow(condition), 8)
 num_test <- 1
 while(num_test <= dim(condition)[1]){
   
@@ -114,10 +116,14 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
-  result_power <- results[index_change, ]  #these people show change --> power
-  colnames(result_power) <- c("eq0", "eq1", "eq2", "eq3")
-  result_type1 <- results[!index_change, ] #these people do not change --> type 1
-  colnames(result_type1) <- c("eq0", "eq1", "eq2", "eq3")
+  result_power <- cbind(theta_pre[index_change],  results[index_change, ])  #these people show change --> power
+  colnames(result_power) <- c("theta_pre", "eq0", "eq1", "eq2", "eq3")
+  Power_mean_median[num_test, ] <- c(apply(result_power[, 2:5], 2, mean), apply(result_power[, 2:5], 2, median))
+  
+  
+  result_type1 <- cbind(theta_pre[setdiff(1:1000, index_change)], results[setdiff(1:1000, index_change), ]) #these people do not change --> type 1
+  colnames(result_type1) <- c("theta_pre", "eq0", "eq1", "eq2", "eq3")
+  Type1_mean_median[num_test, ] <- c(apply(result_type1[, 2:5], 2, mean), apply(result_type1[, 2:5], 2, median))
   
   final_res <- list(result_power, result_type1)  
 
@@ -127,14 +133,67 @@ while(num_test <= dim(condition)[1]){
   num_test = num_test + 1
 }
 
-save(Final_result, file = "simulation1_power.RData")
-################## summarizing results ############
+save(Final_result, file = "simulation1.RData")
+################## summarizing results ###############################################
 
+#1. Power: test length against carryover effect, when identical items, and 70% vs. 50% of people changes ####
+
+condition[condition$item_character=="parallel" & condition$perc_change==0.7, ]
+index_table_70 <- c(1, 13, 25, 2, 14, 26, 3, 15, 27)
+condition[index_table_70, ]
+
+condition[condition$item_character=="parallel" & condition$perc_change==0.5, ]
+index_table_50 <- c(7, 19, 31, 8, 20, 32, 9, 21, 33)
+condition[index_table_50, ]
+
+PowerTable_parallel <- cbind(Power_mean_median[index_table_70, 1:4], Power_mean_median[index_table_50, 1:4])
+write.csv(PowerTable_parallel, file = "PowerTable_parallel.csv")
+
+#2. Power: test length against carryover effect, when non-identical items and 70% people change ####
+condition[condition$item_character=="non-parallel" & condition$perc_change==0.7, ]
+index_table_70 <- c(4, 16, 28, 5, 17, 29, 6, 18, 30)
+condition[index_table_70, ]
+
+condition[condition$item_character=="non-parallel" & condition$perc_change==0.5, ]
+index_table_50 <- c(10, 22, 34, 11, 23, 35, 12, 24, 36)
+condition[index_table_50, ]
+PowerTable_nonparallel <- cbind(Power_mean_median[index_table_70, 1:4], Power_mean_median[index_table_50, 1:4])
+write.csv(PowerTable_nonparallel, file = "PowerTable_nonparallel.csv")
+
+#3. Type1: test length against carryover effect, when identical items, and 70% vs. 50% of people changes ####
+
+condition[condition$item_character=="parallel" & condition$perc_change==0.7, ]
+index_table_70 <- c(1, 13, 25, 2, 14, 26, 3, 15, 27)
+condition[index_table_70, ]
+
+condition[condition$item_character=="parallel" & condition$perc_change==0.5, ]
+index_table_50 <- c(7, 19, 31, 8, 20, 32, 9, 21, 33)
+condition[index_table_50, ]
+
+Type1Table_parallel <- cbind(Type1_mean_median[index_table_70, 1:4], Type1_mean_median[index_table_50, 1:4])
+write.csv(Type1Table_parallel, file = "Type1Table_parallel.csv")
+
+#2. Type1: test length against carryover effect, when non-identical items and 70% people change ####
+condition[condition$item_character=="non-parallel" & condition$perc_change==0.7, ]
+index_table_70 <- c(4, 16, 28, 5, 17, 29, 6, 18, 30)
+condition[index_table_70, ]
+
+condition[condition$item_character=="non-parallel" & condition$perc_change==0.5, ]
+index_table_50 <- c(10, 22, 34, 11, 23, 35, 12, 24, 36)
+condition[index_table_50, ]
+Type1Table_nonparallel <- cbind(Type1_mean_median[index_table_70, 1:4], Type1_mean_median[index_table_50, 1:4])
+write.csv(Type1Table_nonparallel, file = "Type1Table_nonparallel.csv")
+
+
+############################## END ############################################################
+
+
+############################# below are not used anymore  ###################################
 library(ggplot2)
 library(gridExtra)
 library(grid)
 library(tidyr)
-pic_function <- function(data){
+pic_power <- function(data){
   data = data.frame(data)
   colnames(data)[2:5] <- c("Eq(5)", "Eq(11)", "Eq(14)", "Eq(15)")
   longdata<- gather(data, equation, result, "Eq(5)":"Eq(15)", factor_key=TRUE)
@@ -149,20 +208,38 @@ pic_function <- function(data){
   return(p)
 } #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
 
+pic_type1 <- function(data){
+  data = data.frame(data)
+  colnames(data)[2:5] <- c("Eq(5)", "Eq(11)", "Eq(14)", "Eq(15)")
+  longdata<- gather(data, equation, result, "Eq(5)":"Eq(15)", factor_key=TRUE)
+  p <- ggplot(longdata, aes(x = longdata$theta, y = longdata$result, colour = longdata$equation)) + 
+    geom_line(aes(group = longdata$equation))  +
+    scale_y_continuous(breaks = c(0, 0.1, .4), limits = c(0,.4)) +
+    geom_hline(yintercept=0.1, linetype="dashed", color = "black") +
+    xlim(-3, 3) + 
+    theme(legend.position = "none", axis.text=element_text(size=12, color="black"), 
+          axis.title.x = element_text(size=12), axis.title.y = element_text(size=12)) +
+    labs(x=expression(theta[1]), y="Type-I Error Rate") +
+    facet_grid(equation ~ .)
+  return(p)
+} #!!! xlim and ylim are truncated, therefore when generating plots, we see warning messages.
 
 
-### 1. test length against carryover effect, when identical items and change = .5 ####
+#############################################
+############ Plots for Power ################
+#############################################
+### 1. test length against carryover effect, when identical items and 70% of people changes ####
 condition[27, ]
 
-p1 <- pic_function(data.frame(Final_result[[1]]))   #test length = 5, parallel, magnitude_change = .5, no carryover
-p2 <- pic_function(data.frame(Final_result[[13]]))  #test length = 5, parallel, magnitude_change = .5, 30% carryover
-p3 <- pic_function(data.frame(Final_result[[25]]))  #test length = 5, parallel, magnitude_change = .5, 50% carryover
-p4 <- pic_function(data.frame(Final_result[[2]]))  #test length = 15, parallel, magnitude_change = .5, no carryover
-p5 <- pic_function(data.frame(Final_result[[14]]))  #test length = 15, parallel, magnitude_change = .5, 30% carryover
-p6 <- pic_function(data.frame(Final_result[[26]])) #test length = 15, parallel, magnitude_change = .5, 50% carryover
-p7 <- pic_function(data.frame(Final_result[[3]]))  #test length = 40, parallel, magnitude_change = .5, no carryover
-p8 <- pic_function(data.frame(Final_result[[15]]))  #test length = 40, parallel, magnitude_change = .5, 30% carryover
-p9 <- pic_function(data.frame(Final_result[[27]])) #test length = 40, parallel, magnitude_change = .5, 50% carryover
+p1 <- pic_power(data.frame(Final_result[[1]][[1]]))   #test length = 5, parallel, 70% people change, no carryover
+p2 <- pic_power(data.frame(Final_result[[13]][[1]]))  #test length = 5, parallel, 70% people change, 30% carryover
+p3 <- pic_power(data.frame(Final_result[[25]][[1]]))  #test length = 5, parallel, 70% people change, 50% carryover
+p4 <- pic_power(data.frame(Final_result[[2]][[1]]))  #test length = 15, parallel, 70% people change, no carryover
+p5 <- pic_power(data.frame(Final_result[[14]][[1]]))  #test length = 15, parallel, 70% people change, 30% carryover
+p6 <- pic_power(data.frame(Final_result[[26]][[1]])) #test length = 15, parallel, 70% people change, 50% carryover
+p7 <- pic_power(data.frame(Final_result[[3]][[1]]))  #test length = 40, parallel, 70% people change, no carryover
+p8 <- pic_power(data.frame(Final_result[[15]][[1]]))  #test length = 40, parallel, 70% people change, 30% carryover
+p9 <- pic_power(data.frame(Final_result[[27]][[1]])) #test length = 40, parallel, 70% people change, 50% carryover
 
 grid.arrange(
   p1, p2, p3,
@@ -171,18 +248,18 @@ grid.arrange(
   nrow = 3
 ) #warnings are due to the truncation of xlim
 
-### 2. test length against carryover effect, when non-identical items and change = .5 ####
-condition[30, ]
+### 2. test length against carryover effect, when non-identical items and 70% people change ####
+condition[4, ]
 
-p1 <- pic_function(data.frame(Final_result[[4]]))   #test length = 5, non-parallel, magnitude_change = .5, no carryover
-p2 <- pic_function(data.frame(Final_result[[16]]))  #test length = 5, non-parallel, magnitude_change = .5, 30% carryover
-p3 <- pic_function(data.frame(Final_result[[28]]))  #test length = 5, non-parallel, magnitude_change = .5, 50% carryover
-p4 <- pic_function(data.frame(Final_result[[5]]))  #test length = 15, non-parallel, magnitude_change = .5, no carryover
-p5 <- pic_function(data.frame(Final_result[[17]]))  #test length = 15, non-parallel, magnitude_change = .5, 30% carryover
-p6 <- pic_function(data.frame(Final_result[[29]])) #test length = 15, non-parallel, magnitude_change = .5, 50% carryover
-p7 <- pic_function(data.frame(Final_result[[6]]))  #test length = 40, non-parallel, magnitude_change = .5, no carryover
-p8 <- pic_function(data.frame(Final_result[[18]]))  #test length = 40, non-parallel, magnitude_change = .5, 30% carryover
-p9 <- pic_function(data.frame(Final_result[[30]])) #test length = 40, non-parallel, magnitude_change = .5, 50% carryover
+p1 <- pic_power(data.frame(Final_result[[4]][[1]]))   #test length = 5, non-parallel, 70% people change, no carryover
+p2 <- pic_power(data.frame(Final_result[[16]]))  #test length = 5, non-parallel, magnitude_change = .5, 30% carryover
+p3 <- pic_power(data.frame(Final_result[[28]]))  #test length = 5, non-parallel, magnitude_change = .5, 50% carryover
+p4 <- pic_power(data.frame(Final_result[[5]]))  #test length = 15, non-parallel, magnitude_change = .5, no carryover
+p5 <- pic_power(data.frame(Final_result[[17]]))  #test length = 15, non-parallel, magnitude_change = .5, 30% carryover
+p6 <- pic_power(data.frame(Final_result[[29]])) #test length = 15, non-parallel, magnitude_change = .5, 50% carryover
+p7 <- pic_power(data.frame(Final_result[[6]]))  #test length = 40, non-parallel, magnitude_change = .5, no carryover
+p8 <- pic_power(data.frame(Final_result[[18]]))  #test length = 40, non-parallel, magnitude_change = .5, 30% carryover
+p9 <- pic_power(data.frame(Final_result[[30]])) #test length = 40, non-parallel, magnitude_change = .5, 50% carryover
 
 grid.arrange(
   p1, p2, p3,
