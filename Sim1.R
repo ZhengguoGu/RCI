@@ -1,7 +1,7 @@
 ######################################################
 #########                                   ##########
 #########  Simulation 1: unidimensional     ##########
-#########  Power                            ##########
+#########                                   ##########
 #########                                   ##########
 ######################################################
 
@@ -26,7 +26,7 @@ condition <- expand.grid(test_length, item_character, perc_change,  CO_effect)
 colnames(condition) <- c("test_length", "item_character", "perc_change", "carry-over")
 
 Final_result <- list()
-Power_mean_median <- matrix(NA, nrow(condition), 8)
+Power_mean_median <- matrix(NA, nrow(condition), 8) #first 4 columns are the means, the last 4 columns are the medians
 Type1_mean_median <- matrix(NA, nrow(condition), 8)
 num_test <- 1
 while(num_test <= dim(condition)[1]){
@@ -134,6 +134,7 @@ while(num_test <= dim(condition)[1]){
 }
 
 save(Final_result, file = "simulation1.RData")
+
 ################## summarizing results ###############################################
 
 #1. Power: test length against carryover effect, when identical items, and 70% vs. 50% of people changes ####
@@ -173,7 +174,7 @@ condition[index_table_50, ]
 Type1Table_parallel <- cbind(Type1_mean_median[index_table_70, 1:4], Type1_mean_median[index_table_50, 1:4])
 write.csv(Type1Table_parallel, file = "Type1Table_parallel.csv")
 
-#2. Type1: test length against carryover effect, when non-identical items and 70% people change ####
+#4. Type1: test length against carryover effect, when non-identical items and 70% people change ####
 condition[condition$item_character=="non-parallel" & condition$perc_change==0.7, ]
 index_table_70 <- c(4, 16, 28, 5, 17, 29, 6, 18, 30)
 condition[index_table_70, ]
