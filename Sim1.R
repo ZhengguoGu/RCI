@@ -20,10 +20,10 @@ set.seed(2)
 test_length <- c(5, 15, 40)
 item_character <- c("parallel", "non-parallel")
 CO_effect <- c("non", "30%", "50%")  # carry-over effects
-change_theta = c(0.5, 1)    
+perc_change = c(0.7, 0.5)    #70% showed change or 50% showed change
 
-condition <- expand.grid(test_length, item_character, change_theta,  CO_effect)
-colnames(condition) <- c("test_length", "item_character", "magnitude_change", "carry-over")
+condition <- expand.grid(test_length, item_character, perc_change,  CO_effect)
+colnames(condition) <- c("test_length", "item_character", "perc_change", "carry-over")
 
 Final_result <- list()
 num_test <- 1
@@ -53,8 +53,11 @@ while(num_test <= dim(condition)[1]){
   
   
   theta_pre <- rnorm(1000, mean = 0, sd = 1)
-  theta_pre <- sort(theta_pre)
-  theta_post <- theta_pre + condition[num_test, 3] 
+  #theta_pre <- sort(theta_pre)  #no need to sort it anymore
+  theta_d <- replicate(1000, 0)
+  index_change <- sample(1:1000, (condition[num_test, 3])*1000, replace = F)
+  theta_d[index_change] <- 1  #these people show change
+  theta_post <- theta_pre + theta_d 
   
   # some of the persons may show carry-over effects
   if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
@@ -110,10 +113,15 @@ while(num_test <= dim(condition)[1]){
   }
   stopCluster(cl)
   
-  Powers <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
-  result <- cbind(theta_pre, Powers)
-  colnames(result) <- c("theta", "eq0", "eq1", "eq2", "eq3")
-  Final_result[[num_test]] <- result
+  results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
+  result_power <- results[index_change]  #these people show change --> power
+  colnames(result_power) <- c("eq0", "eq1", "eq2", "eq3")
+  result_type1 <- results[!index_change] #these people do not change --> type 1
+  colnames(result_type1) <- c("eq0", "eq1", "eq2", "eq3")
+  
+  final_res <- list(result_power, result_type1)  
+
+  Final_result[[num_test]] <- final_res
   
   print(num_test)
   num_test = num_test + 1
