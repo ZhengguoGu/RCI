@@ -114,9 +114,9 @@ while(num_test <= dim(condition)[1]){
   stopCluster(cl)
   
   results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
-  result_power <- results[index_change]  #these people show change --> power
+  result_power <- results[index_change, ]  #these people show change --> power
   colnames(result_power) <- c("eq0", "eq1", "eq2", "eq3")
-  result_type1 <- results[!index_change] #these people do not change --> type 1
+  result_type1 <- results[!index_change, ] #these people do not change --> type 1
   colnames(result_type1) <- c("eq0", "eq1", "eq2", "eq3")
   
   final_res <- list(result_power, result_type1)  
