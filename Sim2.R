@@ -40,71 +40,6 @@ POSThoc_type1 <- matrix(NA, nrow(condition), 24)
 num_test <- 1
 while(num_test <= dim(condition)[1]){
   
-  if (condition[num_test, 2] == "parallel") {
-    
-    #generate items for subtest 1
-    itempar_sub1 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub1[,1] <- runif(1,1.5,2.5)   # discrimination
-    avg_beta <- runif(1, 0, 1.25)
-    itempar_sub1[,2] <- avg_beta - .75
-    itempar_sub1[,3] <- avg_beta - .25
-    itempar_sub1[,4] <- avg_beta + .25
-    itempar_sub1[,5] <- avg_beta + .75
-    
-    #generate items for subtest 2
-    itempar_sub2 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub2[,1] <- runif(1,1.5,2.5)   # discrimination
-    avg_beta <- runif(1, 0, 1.25)
-    itempar_sub2[,2] <- avg_beta - .75
-    itempar_sub2[,3] <- avg_beta - .25
-    itempar_sub2[,4] <- avg_beta + .25
-    itempar_sub2[,5] <- avg_beta + .75
-    
-    #generate items for subtest 3
-    itempar_sub3 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub3[,1] <- runif(1,1.5,2.5)   # discrimination
-    avg_beta <- runif(1, 0, 1.25)
-    itempar_sub3[,2] <- avg_beta - .75
-    itempar_sub3[,3] <- avg_beta - .25
-    itempar_sub3[,4] <- avg_beta + .25
-    itempar_sub3[,5] <- avg_beta + .75
-    
-    itempar <- list(itempar_sub1, itempar_sub2, itempar_sub3)
-    
-  } else {#non-parallel
-    
-    #generate items for subtest 1
-    itempar_sub1 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub1[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
-    avg_beta <- runif(condition[num_test, 1], 0, 1.25)
-    itempar_sub1[,2] <- avg_beta - .75
-    itempar_sub1[,3] <- avg_beta - .25
-    itempar_sub1[,4] <- avg_beta + .25
-    itempar_sub1[,5] <- avg_beta + .75
-    
-    #generate items for subtest 2
-    itempar_sub2 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub2[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
-    avg_beta <- runif(condition[num_test, 1], 0, 1.25)
-    itempar_sub2[,2] <- avg_beta - .75
-    itempar_sub2[,3] <- avg_beta - .25
-    itempar_sub2[,4] <- avg_beta + .25
-    itempar_sub2[,5] <- avg_beta + .75
-    
-    #generate items for subtest 3
-    itempar_sub3 <- matrix(NA,condition[num_test, 1],5)
-    itempar_sub3[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
-    avg_beta <- runif(condition[num_test, 1], 0, 1.25)
-    itempar_sub3[,2] <- avg_beta - .75
-    itempar_sub3[,3] <- avg_beta - .25
-    itempar_sub3[,4] <- avg_beta + .25
-    itempar_sub3[,5] <- avg_beta + .75
-    
-    itempar <- list(itempar_sub1, itempar_sub2, itempar_sub3)
-    
-  }
-  
-  
   theta_pre <- MASS::mvrnorm(1000, mu = c(0, 0, 0), Sigma = cov_mat, empirical = FALSE)
   index_change <- sample(1:1000, (condition[num_test, 3])*1000, replace = F) #these people change
   theta_post <- theta_pre
@@ -118,105 +53,184 @@ while(num_test <= dim(condition)[1]){
   }
   
   
-  cl <- makeCluster(12)
-  registerDoSNOW(cl)
-  sim_result <- foreach(i = 1:100) %dorng% {
-    
-    RCI_0 <- 0
-    RCI_1 <- 0
-    RCI_2 <- 0
-    RCI_3 <- 0
-    
-    p_vecregister <- list()
-    
-    for(j in 1:3){ #jth subtest
+  ##############################################################
+  
+  n_rep <- 1 #note that we repeat 50 times, so that in each repitition, a new test (i.e., new set of item parameters) is generated.
+  
+  Results <- 0 # note, this will be broadcasted and becomes a matrix. 
+  while(n_rep <= 50){
+    if (condition[num_test, 2] == "parallel") {
       
-      pretest <- t(sapply(theta_pre[, j], FUN = GRM_func,  itempar = itempar[[j]]))
-      posttest <- t(sapply(theta_post[, j], FUN = GRM_func,  itempar = itempar[[j]]))  # if there would be no carry-over effects
+      #generate items for subtest 1
+      itempar_sub1 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub1[,1] <- runif(1,1.5,2.5)   # discrimination
+      avg_beta <- runif(1, 0, 1.25)
+      itempar_sub1[,2] <- avg_beta - .75
+      itempar_sub1[,3] <- avg_beta - .25
+      itempar_sub1[,4] <- avg_beta + .25
+      itempar_sub1[,5] <- avg_beta + .75
       
-      if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
-        posttest <- carry_over(pretest, posttest, NoCarry_index)
-      }else if (condition[num_test, 4] == "50%"){
-        posttest <- carry_over(pretest, posttest, NoCarry_index)
-      }
+      #generate items for subtest 2
+      itempar_sub2 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub2[,1] <- runif(1,1.5,2.5)   # discrimination
+      avg_beta <- runif(1, 0, 1.25)
+      itempar_sub2[,2] <- avg_beta - .75
+      itempar_sub2[,3] <- avg_beta - .25
+      itempar_sub2[,4] <- avg_beta + .25
+      itempar_sub2[,5] <- avg_beta + .75
       
-      sum_pre <- rowSums(pretest)
-      sum_post <- rowSums(posttest)
+      #generate items for subtest 3
+      itempar_sub3 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub3[,1] <- runif(1,1.5,2.5)   # discrimination
+      avg_beta <- runif(1, 0, 1.25)
+      itempar_sub3[,2] <- avg_beta - .75
+      itempar_sub3[,3] <- avg_beta - .25
+      itempar_sub3[,4] <- avg_beta + .25
+      itempar_sub3[,5] <- avg_beta + .75
       
+      itempar <- list(itempar_sub1, itempar_sub2, itempar_sub3)
       
-      r12 <- cor(sum_pre, sum_post)
-      var_pre <- var(sum_pre)
-      sd_pre <- sd(sum_pre)
-      var_post <- var(sum_post)
-      sd_post <- sd(sum_post)
+    } else {#non-parallel
       
-      D_score <- sum_post - sum_pre
-      sd_D <- sd(D_score)
-      rDD <- psychometric::alpha(posttest - pretest)
+      #generate items for subtest 1
+      itempar_sub1 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub1[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
+      avg_beta <- runif(condition[num_test, 1], 0, 1.25)
+      itempar_sub1[,2] <- avg_beta - .75
+      itempar_sub1[,3] <- avg_beta - .25
+      itempar_sub1[,4] <- avg_beta + .25
+      itempar_sub1[,5] <- avg_beta + .75
       
-      r11 <- psychometric::alpha(pretest)
-      r22 <- psychometric::alpha(posttest)
-      # 0. orginal equation for sigma_E_D_v 
-      SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
-      # 1. alternative equation 1
-      SE1 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
-      # 2. alternative equation 2
-      SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
-      # 3. alternative equation 3
-      SE3 <- sd_D * sqrt(1 - rDD)
+      #generate items for subtest 2
+      itempar_sub2 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub2[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
+      avg_beta <- runif(condition[num_test, 1], 0, 1.25)
+      itempar_sub2[,2] <- avg_beta - .75
+      itempar_sub2[,3] <- avg_beta - .25
+      itempar_sub2[,4] <- avg_beta + .25
+      itempar_sub2[,5] <- avg_beta + .75
       
-      RCI_0 <- RCI_0 + (D_score/SE0)^2
-      RCI_1 <- RCI_1 + (D_score/SE1)^2
-      RCI_2 <- RCI_2 + (D_score/SE2)^2
-      RCI_3 <- RCI_3 + (D_score/SE3)^2
+      #generate items for subtest 3
+      itempar_sub3 <- matrix(NA,condition[num_test, 1],5)
+      itempar_sub3[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
+      avg_beta <- runif(condition[num_test, 1], 0, 1.25)
+      itempar_sub3[,2] <- avg_beta - .75
+      itempar_sub3[,3] <- avg_beta - .25
+      itempar_sub3[,4] <- avg_beta + .25
+      itempar_sub3[,5] <- avg_beta + .75
       
-      p_vecregister[[j]] <- cbind(t(sapply(D_score/SE0, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),  #notice that t(sapply(..., FUN=pvalue),... ) generate two columns, one for p values, one for sig/nonsig
-                                  t(sapply(D_score/SE1, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
-                                  t(sapply(D_score/SE2, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
-                                  t(sapply(D_score/SE3, FUN = pvalue, two_tail = 2, alpha_M = alpha_M))
-      )  #p_vecregister[[j]] is a 1000x8 matrix, rows represent persons
-      
+      itempar <- list(itempar_sub1, itempar_sub2, itempar_sub3)
       
     }
     
-    sig_eq0 <- (RCI_0 > 6.251)  #chi-square test at .1 level with df = 3
-    sig_eq1 <- (RCI_1 > 6.251)
-    sig_eq2 <- (RCI_2 > 6.251)
-    sig_eq3 <- (RCI_3 > 6.251)
+    cl <- makeCluster(12)
+    registerDoSNOW(cl)
+    sim_result <- foreach(i = 1:100) %dorng% {
+      
+      RCI_0 <- 0
+      RCI_1 <- 0
+      RCI_2 <- 0
+      RCI_3 <- 0
+      
+      p_vecregister <- list()
+      
+      for(j in 1:3){ #jth subtest
+        
+        pretest <- t(sapply(theta_pre[, j], FUN = GRM_func,  itempar = itempar[[j]]))
+        posttest <- t(sapply(theta_post[, j], FUN = GRM_func,  itempar = itempar[[j]]))  # if there would be no carry-over effects
+        
+        if(condition[num_test, 4] == "30%"){  #introducing carry-over effects, if any
+          posttest <- carry_over(pretest, posttest, NoCarry_index)
+        }else if (condition[num_test, 4] == "50%"){
+          posttest <- carry_over(pretest, posttest, NoCarry_index)
+        }
+        
+        sum_pre <- rowSums(pretest)
+        sum_post <- rowSums(posttest)
+        
+        
+        r12 <- cor(sum_pre, sum_post)
+        var_pre <- var(sum_pre)
+        sd_pre <- sd(sum_pre)
+        var_post <- var(sum_post)
+        sd_post <- sd(sum_post)
+        
+        D_score <- sum_post - sum_pre
+        sd_D <- sd(D_score)
+        rDD <- psychometric::alpha(posttest - pretest)
+        
+        r11 <- psychometric::alpha(pretest)
+        r22 <- psychometric::alpha(posttest)
+        # 0. orginal equation for sigma_E_D_v 
+        SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
+        # 1. using r11 instead of r12
+        SE1 <- sqrt(2 * (1 - r11)) * sd_pre
+        # 2. alternative equation 1
+        SE2 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
+        # 3. alternative equation 2 (equavalent to SE2)
+        # SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
+        # 3. alternative equation 3
+        SE3 <- sd_D * sqrt(1 - rDD)
+        
+        RCI_0 <- RCI_0 + (D_score/SE0)^2
+        RCI_1 <- RCI_1 + (D_score/SE1)^2
+        RCI_2 <- RCI_2 + (D_score/SE2)^2
+        RCI_3 <- RCI_3 + (D_score/SE3)^2
+        
+        p_vecregister[[j]] <- cbind(t(sapply(D_score/SE0, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),  #notice that t(sapply(..., FUN=pvalue),... ) generate two columns, one for p values, one for sig/nonsig
+                                    t(sapply(D_score/SE1, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
+                                    t(sapply(D_score/SE2, FUN = pvalue, two_tail = 2, alpha_M = alpha_M)),
+                                    t(sapply(D_score/SE3, FUN = pvalue, two_tail = 2, alpha_M = alpha_M))
+        )  #p_vecregister[[j]] is a 1000x8 matrix, rows represent persons
+        
+        
+      }
+      
+      sig_eq0 <- (RCI_0 > 6.251)  #chi-square test at .1 level with df = 3
+      sig_eq1 <- (RCI_1 > 6.251)
+      sig_eq2 <- (RCI_2 > 6.251)
+      sig_eq3 <- (RCI_3 > 6.251)
+      
+      
+      posthoc_bonf <- cbind(p_vecregister[[1]][, 2], p_vecregister[[2]][, 2], p_vecregister[[3]][, 2],  #eq0: subtest 1, 2, 3
+                            p_vecregister[[1]][, 4], p_vecregister[[2]][, 4], p_vecregister[[3]][, 4],  #eq1: subtest 1, 2, 3
+                            p_vecregister[[1]][, 6], p_vecregister[[2]][, 6], p_vecregister[[3]][, 6],  #eq2: subtest 1, 2, 3
+                            p_vecregister[[1]][, 8], p_vecregister[[2]][, 8], p_vecregister[[3]][, 8])  #eq3: subtest 1, 2, 3
+      
+      #colnames(posthoc_bonf) <- c("bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
+      #"bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
+      #"bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
+      #"bonf_eq3_sub1", "bonf_eq3_sub2", "bonf_eq3_sub3")
+      
+      posthoc_pvalues <- cbind(p_vecregister[[1]][, 1], p_vecregister[[2]][, 1], p_vecregister[[3]][, 1],  #eq0: subtest 1, 2, 3
+                               p_vecregister[[1]][, 3], p_vecregister[[2]][, 3], p_vecregister[[3]][, 3],  #eq1: subtest 1, 2, 3
+                               p_vecregister[[1]][, 5], p_vecregister[[2]][, 5], p_vecregister[[3]][, 5],  #eq2: subtest 1, 2, 3
+                               p_vecregister[[1]][, 7], p_vecregister[[2]][, 7], p_vecregister[[3]][, 7])  #eq3: subtest 1, 2, 3
+      
+      BenHochresults <- cbind(apply(posthoc_pvalues[, 1:3], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq0: subtest 1, 2, 3
+                              apply(posthoc_pvalues[, 4:6], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq1: subtest 1, 2, 3
+                              apply(posthoc_pvalues[, 7:9], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq2: subtest 1, 2, 3
+                              apply(posthoc_pvalues[, 10:12], MARGIN = 2, FUN = Ben_Hoch, Q = Q))  #eq3: subtest 1, 2, 3
+      
+      #olnames(BenHochresults) <- c("BenH_eq0_sub1", "BenH_eq0_sub2", "BenH_eq0_sub3", 
+      # "BenH_eq1_sub1", "BenH_eq1_sub2", "BenH_eq1_sub3",
+      #"BenH_eq2_sub1", "BenH_eq2_sub2", "BenH_eq2_sub3",
+      # "BenH_eq3_sub1", "BenH_eq3_sub2", "BenH_eq3_sub3")
+      
+      result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3, posthoc_bonf, BenHochresults)
+      return(result)
+      
+    }
+    stopCluster(cl)
     
-    
-    posthoc_bonf <- cbind(p_vecregister[[1]][, 2], p_vecregister[[2]][, 2], p_vecregister[[3]][, 2],  #eq0: subtest 1, 2, 3
-                          p_vecregister[[1]][, 4], p_vecregister[[2]][, 4], p_vecregister[[3]][, 4],  #eq1: subtest 1, 2, 3
-                          p_vecregister[[1]][, 6], p_vecregister[[2]][, 6], p_vecregister[[3]][, 6],  #eq2: subtest 1, 2, 3
-                          p_vecregister[[1]][, 8], p_vecregister[[2]][, 8], p_vecregister[[3]][, 8])  #eq3: subtest 1, 2, 3
-    
-    #colnames(posthoc_bonf) <- c("bonf_eq0_sub1", "bonf_eq0_sub2", "bonf_eq0_sub3", 
-                                #"bonf_eq1_sub1", "bonf_eq1_sub2", "bonf_eq1_sub3",
-                                #"bonf_eq2_sub1", "bonf_eq2_sub2", "bonf_eq2_sub3",
-                                #"bonf_eq3_sub1", "bonf_eq3_sub2", "bonf_eq3_sub3")
-    
-    posthoc_pvalues <- cbind(p_vecregister[[1]][, 1], p_vecregister[[2]][, 1], p_vecregister[[3]][, 1],  #eq0: subtest 1, 2, 3
-                             p_vecregister[[1]][, 3], p_vecregister[[2]][, 3], p_vecregister[[3]][, 3],  #eq1: subtest 1, 2, 3
-                             p_vecregister[[1]][, 5], p_vecregister[[2]][, 5], p_vecregister[[3]][, 5],  #eq2: subtest 1, 2, 3
-                             p_vecregister[[1]][, 7], p_vecregister[[2]][, 7], p_vecregister[[3]][, 7])  #eq3: subtest 1, 2, 3
-    
-    BenHochresults <- cbind(apply(posthoc_pvalues[, 1:3], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq0: subtest 1, 2, 3
-                            apply(posthoc_pvalues[, 4:6], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq1: subtest 1, 2, 3
-                            apply(posthoc_pvalues[, 7:9], MARGIN = 2, FUN = Ben_Hoch, Q = Q),  #eq2: subtest 1, 2, 3
-                            apply(posthoc_pvalues[, 10:12], MARGIN = 2, FUN = Ben_Hoch, Q = Q))  #eq3: subtest 1, 2, 3
-    
-    #olnames(BenHochresults) <- c("BenH_eq0_sub1", "BenH_eq0_sub2", "BenH_eq0_sub3", 
-                                 # "BenH_eq1_sub1", "BenH_eq1_sub2", "BenH_eq1_sub3",
-                                  #"BenH_eq2_sub1", "BenH_eq2_sub2", "BenH_eq2_sub3",
-                                 # "BenH_eq3_sub1", "BenH_eq3_sub2", "BenH_eq3_sub3")
-    
-    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3, posthoc_bonf, BenHochresults)
-    return(result)
-    
-  }
-  stopCluster(cl)
+    Results <- Results + Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate and power
   
-  Results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together, and then compute the empirical Type 1 error rate 
+    n_rep <- n_rep + 1
+    print(n_rep)  
+  }
+  
+  Results <- Results/50 #average across 50 tests 
+  
   OMNI_power[num_test, ] <- colMeans(Results[index_change, 1:4])
   OMNI_type1[num_test, ] <- colMeans(Results[setdiff(1:1000, index_change), 1:4])
   
