@@ -26,33 +26,10 @@ condition <- expand.grid(test_length, item_character, perc_change,  CO_effect)
 colnames(condition) <- c("test_length", "item_character", "perc_change", "carry-over")
 
 Final_result <- list()
-Power_mean_median <- matrix(NA, nrow(condition), 8) #first 4 columns are the means, the last 4 columns are the medians
-Type1_mean_median <- matrix(NA, nrow(condition), 8)
+Power_mean_median <- matrix(NA, nrow(condition), 4) 
+Type1_mean_median <- matrix(NA, nrow(condition), 4)
 num_test <- 1
 while(num_test <= dim(condition)[1]){
-  
-  if (condition[num_test, 2] == "parallel") {#identical item parameters
-    
-    itempar <- matrix(NA,condition[num_test, 1],5)
-    itempar[,1] <- runif(1,1.5,2.5)   # discrimination
-    avg_beta <- runif(1, 0, 1.25)
-    itempar[,2] <- avg_beta - .75
-    itempar[,3] <- avg_beta - .25
-    itempar[,4] <- avg_beta + .25
-    itempar[,5] <- avg_beta + .75
-    
-  } else { #non-identical item parameters
-    
-    itempar <- matrix(NA,condition[num_test, 1],5)
-    itempar[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
-    avg_beta <- runif(condition[num_test, 1], 0, 1.25)
-    itempar[,2] <- avg_beta - .75
-    itempar[,3] <- avg_beta - .25
-    itempar[,4] <- avg_beta + .25
-    itempar[,5] <- avg_beta + .75
-    
-  }
-  
   
   theta_pre <- rnorm(1000, mean = 0, sd = 1)
   #theta_pre <- sort(theta_pre)  #no need to sort it anymore
@@ -68,65 +45,103 @@ while(num_test <= dim(condition)[1]){
     NoCarry_index <- sample(1000, floor(1000 * (1-0.5)), replace = FALSE)  #here we fix the persons who do not show carryover
   }
   
-  cl <- makeCluster(12)
-  registerDoSNOW(cl)
-  sim_result <- foreach(i = 1:100) %dorng% {
+  
+  ##############################################################
+  
+  n_rep <- 1 
+  results <- matrix(0, 1000, 4)
+  while(n_rep <= 50){
     
-    pretest <- t(sapply(theta_pre, FUN = GRM_func,  itempar = itempar))
-    posttest <- t(sapply(theta_post, FUN = GRM_func,  itempar = itempar))  
-    
-    if(condition[num_test, 4] != "non"){    #i.e., there is carryover effect
-      posttest <- carry_over(pretest, posttest, NoCarry_index)
+    if (condition[num_test, 2] == "parallel") {#identical item parameters
+      
+      itempar <- matrix(NA,condition[num_test, 1],5)
+      itempar[,1] <- runif(1,1.5,2.5)   # discrimination
+      avg_beta <- runif(1, 0, 1.25)
+      itempar[,2] <- avg_beta - .75
+      itempar[,3] <- avg_beta - .25
+      itempar[,4] <- avg_beta + .25
+      itempar[,5] <- avg_beta + .75
+      
+    } else { #non-identical item parameters
+      
+      itempar <- matrix(NA,condition[num_test, 1],5)
+      itempar[,1] <- runif(condition[num_test, 1],1.5,2.5)  # discrimination
+      avg_beta <- runif(condition[num_test, 1], 0, 1.25)
+      itempar[,2] <- avg_beta - .75
+      itempar[,3] <- avg_beta - .25
+      itempar[,4] <- avg_beta + .25
+      itempar[,5] <- avg_beta + .75
+      
     }
     
-    sum_pre <- rowSums(pretest)
-    sum_post <- rowSums(posttest)
+    cl <- makeCluster(12)
+    registerDoSNOW(cl)
+    sim_result <- foreach(i = 1:100) %dorng% {
+      
+      pretest <- t(sapply(theta_pre, FUN = GRM_func,  itempar = itempar))
+      posttest <- t(sapply(theta_post, FUN = GRM_func,  itempar = itempar))  
+      
+      if(condition[num_test, 4] != "non"){    #i.e., there is carryover effect
+        posttest <- carry_over(pretest, posttest, NoCarry_index)
+      }
+      
+      sum_pre <- rowSums(pretest)
+      sum_post <- rowSums(posttest)
+      
+      
+      r12 <- cor(sum_pre, sum_post)
+      var_pre <- var(sum_pre)
+      sd_pre <- sd(sum_pre)
+      var_post <- var(sum_post)
+      sd_post <- sd(sum_post)
+      
+      D_score <- sum_post - sum_pre
+      sd_D <- sd(D_score)
+      rDD <- psychometric::alpha(posttest - pretest)
+      
+      r11 <- psychometric::alpha(pretest)
+      r22 <- psychometric::alpha(posttest)
+      # 0. orginal equation for sigma_E_D_v 
+      SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
+      # 1. using r11 instead of r12
+      SE1 <- sqrt(2 * (1 - r11)) * sd_pre
+      # 2. alternative equation 1
+      SE2 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
+      # 3. alternative equation 2 (equavalent to SE2)
+      # SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
+      # 3. alternative equation 3
+      SE3 <- sd_D * sqrt(1 - rDD)
+      
+      sig_eq0 <- (abs(D_score / SE0) > 1.645)  
+      sig_eq1 <- (abs(D_score / SE1) > 1.645)
+      sig_eq2 <- (abs(D_score / SE2) > 1.645)
+      sig_eq3 <- (abs(D_score / SE3) > 1.645)
+      
+      result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
+      return(result)
+      
+    }
+    stopCluster(cl)
     
+    results <- results + Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
+    n_rep <- n_rep + 1
     
-    r12 <- cor(sum_pre, sum_post)
-    var_pre <- var(sum_pre)
-    sd_pre <- sd(sum_pre)
-    var_post <- var(sum_post)
-    sd_post <- sd(sum_post)
-    
-    D_score <- sum_post - sum_pre
-    sd_D <- sd(D_score)
-    rDD <- psychometric::alpha(posttest - pretest)
-    
-    r11 <- psychometric::alpha(pretest)
-    r22 <- psychometric::alpha(posttest)
-    # 0. orginal equation for sigma_E_D_v 
-    SE0 <- sqrt(2 * (1 - r12)) * sd_pre 
-    # 1. alternative equation 1
-    SE1 <- sqrt(var_pre * (1 - r11) + var_post * (1 - r22))
-    # 2. alternative equation 2
-    SE2 <- sd_D * sqrt(1 - (r11 * var_pre + r22 * var_post - 2 * r12 * sd_pre * sd_post) / (var_pre + var_post - 2 * r12 * sd_pre * sd_post))
-    # 3. alternative equation 3
-    SE3 <- sd_D * sqrt(1 - rDD)
-    
-    sig_eq0 <- (abs(D_score / SE0) > 1.645)  
-    sig_eq1 <- (abs(D_score / SE1) > 1.645)
-    sig_eq2 <- (abs(D_score / SE2) > 1.645)
-    sig_eq3 <- (abs(D_score / SE3) > 1.645)
-    
-    result <- cbind(sig_eq0, sig_eq1, sig_eq2, sig_eq3)
-    return(result)
-    
+    print(n_rep)
   }
-  stopCluster(cl)
   
-  results <- Reduce('+', sim_result) / 100  # parallel-generated 100 matrices, and we add these matrices together
+  results <- results/50 #average across 50 tests 
+
   result_power <- cbind(theta_pre[index_change],  results[index_change, ])  #these people show change --> power
   colnames(result_power) <- c("theta_pre", "eq0", "eq1", "eq2", "eq3")
-  Power_mean_median[num_test, ] <- c(apply(result_power[, 2:5], 2, mean), apply(result_power[, 2:5], 2, median))
+  Power_mean_median[num_test, ] <- c(apply(result_power[, 2:5], 2, mean))
   
   
   result_type1 <- cbind(theta_pre[setdiff(1:1000, index_change)], results[setdiff(1:1000, index_change), ]) #these people do not change --> type 1
   colnames(result_type1) <- c("theta_pre", "eq0", "eq1", "eq2", "eq3")
-  Type1_mean_median[num_test, ] <- c(apply(result_type1[, 2:5], 2, mean), apply(result_type1[, 2:5], 2, median))
+  Type1_mean_median[num_test, ] <- c(apply(result_type1[, 2:5], 2, mean))
   
-  final_res <- list(result_power, result_type1)  
-
+  final_res <- list(result_power, result_type1) 
+  
   Final_result[[num_test]] <- final_res
   
   print(num_test)
