@@ -179,10 +179,10 @@ while(num_test <= dim(condition)[1]){
       
     }
     
-    sig_eq0 <- (RCI_0 > 4.6052)  #chi-square test at .1 level
-    sig_eq1 <- (RCI_1 > 4.6052)
-    sig_eq2 <- (RCI_2 > 4.6052)
-    sig_eq3 <- (RCI_3 > 4.6052)
+    sig_eq0 <- (RCI_0 > 6.251)  #chi-square test at .1 level with df = 3
+    sig_eq1 <- (RCI_1 > 6.251)
+    sig_eq2 <- (RCI_2 > 6.251)
+    sig_eq3 <- (RCI_3 > 6.251)
     
     
     posthoc_bonf <- cbind(p_vecregister[[1]][, 2], p_vecregister[[2]][, 2], p_vecregister[[3]][, 2],  #eq0: subtest 1, 2, 3
