@@ -48,7 +48,7 @@ while(num_test <= dim(condition)[1]){
   
   ##############################################################
   
-  n_rep <- 1 
+  n_rep <- 1 #note that we repeat 50 times, so that in each repitition, a new test (i.e., new set of item parameters) is generated.
   results <- matrix(0, 1000, 4)
   while(n_rep <= 50){
     
@@ -133,7 +133,7 @@ while(num_test <= dim(condition)[1]){
 
   result_power <- cbind(theta_pre[index_change],  results[index_change, ])  #these people show change --> power
   colnames(result_power) <- c("theta_pre", "eq0", "eq1", "eq2", "eq3")
-  Power_mean_median[num_test, ] <- c(apply(result_power[, 2:5], 2, mean))
+  Power_mean_median[num_test, ] <- c(apply(result_power[, 2:5], 2, mean))  #note, I do not compute medians anymore, but the matrix is still Power_mean_median
   
   
   result_type1 <- cbind(theta_pre[setdiff(1:1000, index_change)], results[setdiff(1:1000, index_change), ]) #these people do not change --> type 1
@@ -162,7 +162,7 @@ condition[condition$item_character=="parallel" & condition$perc_change==0.5, ]
 index_table_50 <- c(7, 19, 31, 8, 20, 32, 9, 21, 33)
 condition[index_table_50, ]
 
-PowerTable_parallel <- cbind(Power_mean_median[index_table_70, 1:4], Power_mean_median[index_table_50, 1:4])
+PowerTable_parallel <- cbind(Power_mean_median[index_table_70, ], Power_mean_median[index_table_50, ])
 write.csv(PowerTable_parallel, file = "PowerTable_parallel.csv")
 
 #2. Power: test length against carryover effect, when non-identical items and 70% people change ####
