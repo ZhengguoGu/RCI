@@ -4,6 +4,8 @@
 #########                                   ##########
 #########                                   ##########
 ######################################################
+#note: the result was obtained on the author's mac (2019.06.27)
+
 
 library(psychometric)
 library(doSNOW)
