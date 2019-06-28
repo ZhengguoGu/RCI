@@ -5,6 +5,8 @@
 #########                                   ##########
 ######################################################
 
+#note: results were obtained on the author's desktop (2019.06.28)
+
 library(psychometric)
 library(doSNOW)
 library(doRNG)
@@ -282,7 +284,7 @@ condition[index_table_70, ]
 condition[condition$item_character=="non-parallel" & condition$perc_change==0.5, ]
 index_table_50 <- c(10, 22, 34, 11, 23, 35, 12, 24, 36)
 condition[index_table_50, ]
-OMNI_powerTable_nonparallel <- cbind(OMNI_power[index_table_70, 1:4], OMNI_power[index_table_50, 1:4])
+OMNI_powerTable_nonparallel <- cbind(OMNI_power[index_table_70, ], OMNI_power[index_table_50, ])
 write.csv(OMNI_powerTable_nonparallel, file = "OMNI_powerTable_nonparallel.csv")
 
 #3. Type1: test length against carryover effect, when identical items, and 70% vs. 50% of people changes ####
@@ -295,7 +297,7 @@ condition[condition$item_character=="parallel" & condition$perc_change==0.5, ]
 index_table_50 <- c(7, 19, 31, 8, 20, 32, 9, 21, 33)
 condition[index_table_50, ]
 
-OMNI_type1Table_parallel <- cbind(OMNI_type1[index_table_70, 1:4], OMNI_type1[index_table_50, 1:4])
+OMNI_type1Table_parallel <- cbind(OMNI_type1[index_table_70, ], OMNI_type1[index_table_50, ])
 write.csv(OMNI_type1Table_parallel, file = "OMNI_type1Table_parallel.csv")
 
 #4. Type1: test length against carryover effect, when non-identical items and 70% people change ####
@@ -307,7 +309,7 @@ condition[condition$item_character=="non-parallel" & condition$perc_change==0.5,
 index_table_50 <- c(10, 22, 34, 11, 23, 35, 12, 24, 36)
 condition[index_table_50, ]
 
-OMNI_type1Table_nonparallel <- cbind(OMNI_type1[index_table_70, 1:4], OMNI_type1[index_table_50, 1:4])
+OMNI_type1Table_nonparallel <- cbind(OMNI_type1[index_table_70, ], OMNI_type1[index_table_50, ])
 write.csv(OMNI_type1Table_nonparallel, file = "OMNI_type1Table_nonparallel.csv")
 
 #########
